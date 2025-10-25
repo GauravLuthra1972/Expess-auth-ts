@@ -1,9 +1,11 @@
 import express from 'express'
 import userRoutes from './routes/userRoutes'
-
+import dotenv from 'dotenv'
 
 const app=express()
-const port=8080
+dotenv.config()
+
+const port=process.env.PORT||3000
 
 app.use(express.json())
 app.use("/users",userRoutes)
@@ -14,6 +16,6 @@ app.get("/",(req,res)=>{
 })
 
 
-app.listen(port,()=>{
-    console.log("Server started on"+port)
+app.listen(port || 3000,()=>{
+    console.log("Server started on "+port)
 })
