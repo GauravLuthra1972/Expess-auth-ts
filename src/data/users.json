@@ -12,5 +12,19 @@
     "password": "$2b$10$TW77KGXH9AVXdyEmpYFLHewZNJ9Bt1nZ3OZCi/Eo8tnf2qkDMfoXG",
     "name": "Gaurav Luthra",
     "email": "gaurav22@gmail.com"
+  },
+  {
+    "id": "232a82a9-9bf5-43c7-a5e8-6fe7f4aeb9da",
+    "username": "Gaurav@38",
+    "password": "$2b$10$y0vuY2tIptv..szbTxmlYeI2/CQPl.MZbvpyTnWKGkz8gpx8QAbF2",
+    "name": "Gaurav Luthra",
+    "email": "gaurav221@gmail.com"
+  },
+  {
+    "id": "089899ec-48de-4d8f-86ac-42f9b6ddb49c",
+    "username": "Gaurav@8",
+    "password": "$2b$10$yQ74bDrCTMa0lGRERyKj5OMG760QLbhICFEKed0dyMr.ML/M3izQy",
+    "name": "Gaurav Luthra",
+    "email": "gaurav221@gmail.com"
   }
 ]
