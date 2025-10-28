@@ -1,9 +1,7 @@
 import { Request, Response } from "express";
-import { read, write } from "../utils/fileHandler";
-import { v4 as uuidv4 } from 'uuid'
-import { User } from "../models/User";
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
+import db from "../config/db";
 
 
 
@@ -11,85 +9,78 @@ const saltRounds = 10
 
 class UserController {
 
-    static fetchUsers(req: Request, res: Response): void {
-        const users = read()
-        res.json(users)
+    static async fetchUsers(req: Request, res: Response) {
+        try {
+            const [rows]: any = await db.query('SELECT * FROM users2');
+            res.json(rows);
+        }
+        catch (err) {
+            console.error(err);
+            res.json({ message: "Internal Server Error" });
+        }
     }
 
-    static registerUser(req: Request, res: Response) {
-        const { name, email, username, password } = req.body
+    static async registerUser(req: Request, res: Response) {
+        const { name, email, username, password } = req.body;
 
         if (!username || !password || !email || !name) {
             return res.json({ message: "All fields are required" });
         }
 
-        const users: User[] = read()
-
-        const userExist: boolean = users.some((user: User) => user.username == username)
-        if (userExist) {
-            return res.json({ message: "User already exists" })
-        }
-
-        const hashpass = bcrypt.hashSync(password, saltRounds)
-
-        const newUser: User = {
-            id: uuidv4(),
-            username,
-            password: hashpass,
-            name,
-            email
-        }
-
-        users.push(newUser)
-        write(users)
-
-        const secret: string | undefined = process.env.SECRET_KEY
-        if (!secret) {
-            return res.json({ message: "Secret is undefined" })
-        }
-
         try {
+            const [existing]: any = await db.query(
+                'SELECT * FROM users2 WHERE username = ?',
+                [username]
+            );
+
+            if (existing.length > 0) {
+                return res.json({ message: "User already Exists" });
+            }
+
+            const hashpass = bcrypt.hashSync(password, saltRounds);
+
+            const [result]: any = await db.query(
+                'INSERT INTO users2 (name, email, username, password) VALUES (?, ?, ?, ?)',
+                [name, email, username, hashpass]
+            );
+
+            const newUserId = result.insertId;
+
+            const secret: string | undefined = process.env.SECRET_KEY;
+            if (!secret) return res.json({ message: "Secret is undefined" });
+
             const accesstoken = jwt.sign(
-                {
-                    id: newUser.id,
-                    username: newUser.username,
-                    email: newUser.email,
-                    name: newUser.name
-                },
+                { id: newUserId, username, email, name },
                 secret,
                 { expiresIn: '1h' }
-            )
-
+            );
 
             const refreshtoken = jwt.sign(
-                {
-                    id: newUser.id,
-                    username: newUser.username,
-                    email: newUser.email,
-                    name: newUser.name
-                },
+                { id: newUserId, username, email, name },
                 secret,
                 { expiresIn: '7h' }
-            )
-            res.json({ message: "User Registered", accesstoken, refreshtoken })
-        } catch {
-            res.json({ message: "Error generating token" })
+            );
+
+            res.json({ message: "User Registered", accesstoken, refreshtoken });
+        } catch (error: any) {
+            console.error(error);
+            res.json({ message: "Database error" });
         }
     }
 
 
-    static loginUser(req: Request, res: Response) {
+
+    static async loginUser(req: Request, res: Response) {
         const { username, password } = req.body
 
         if (!username || !password) {
-            res.json({ message: "Username and Password are required" })
+            return res.json({ message: "Username and Password are required" })
         }
 
-        const users: User[] = read()
+        const [existing]: any = await db.query('Select * from users2 where username=?', [username])
 
-        const user = users.find(u => u.username === username);
-
-        if (user) {
+        if (existing.length > 0) {
+            const user = existing[0]
 
 
             const flag = bcrypt.compareSync(password, user.password)
@@ -129,8 +120,8 @@ class UserController {
 
                 }
 
-                catch {
-                    res.json({ message: "error" });
+                catch (err) {
+                    res.json({ message: "error", err });
 
                 }
 
@@ -146,6 +137,31 @@ class UserController {
     }
 
 
+    static userinfo(req: Request, res: Response) {
+        const { token } = req.body
+
+        if (!token) {
+            return res.json({ message: "Token is missing" })
+        }
+
+        const secret: string | undefined = process.env.SECRET_KEY
+
+        if (!secret) {
+            return res.json({ message: "Secret key is undefined" });
+        }
+
+        try{
+            const info:any=jwt.verify(token,secret)
+
+            return res.json({message:"User Data Fetched",info})
+        }
+        catch(err){
+            res.json({message:"Error in fetching",err})
+        }
+
+    }
+
+
     static refreshToken(req: Request, res: Response) {
         const { refreshtoken } = req.body;
         if (!refreshtoken) {
@@ -158,7 +174,7 @@ class UserController {
         }
 
         try {
-            const decoded:any = jwt.verify(refreshtoken, secret);
+            const decoded: any = jwt.verify(refreshtoken, secret);
 
             const accesstoken = jwt.sign(
                 {
@@ -191,11 +207,6 @@ class UserController {
             return res.status(403).json({ message: "Invalid or expired refresh token" });
         }
     }
-
-
-
-
-
 }
 
 
