@@ -7,6 +7,6 @@ const router = Router();
 router.get('/',authenticate,UserController.fetchUsers)
 router.get("/userinfo",authenticate,UserController.userinfo)
 router.delete("/delete",authenticate,UserController.deleteUser)
-router.put("/update",authenticate,UserController.updateUser)
+router.put("/update",UserController.updateUser)
 
 export default router;

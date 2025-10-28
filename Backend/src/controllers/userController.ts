@@ -2,8 +2,6 @@ import { Request, Response } from "express";
 import jwt from 'jsonwebtoken'
 import db from "../config/db";
 
-
-
 const saltRounds = 10
 
 class UserController {
@@ -20,7 +18,7 @@ class UserController {
     }
 
 
-    static userinfo(req: Request, res: Response) {
+    static async userinfo(req: Request, res: Response) {
         const authheader = req.headers.authorization;
         if (!authheader) {
             return res.json({ message: "Authorization header missing" });
@@ -37,7 +35,10 @@ class UserController {
         }
 
         try {
-            const info: any = jwt.verify(token, secret)
+            const decoded: any = jwt.verify(token, secret)
+            const userid=decoded.id
+
+            const[info]:any=await db.query('Select * from users2 where id=?',[userid])
 
             return res.json({ message: "User Data Fetched", info })
         }
@@ -73,19 +74,26 @@ class UserController {
 
 
   static async updateUser(req: Request, res: Response) {
-    const { name, username, email } = req.body;
+    const { id, name, username, email } = req.body;
 
     try {
-        const [result]: any = await db.query(
-            "UPDATE users2 SET name = ?, username = ? , email = ?",
-            [name, username, email]
+        const [user]: any = await db.query("SELECT * FROM users2 WHERE id = ?", [id]);
+
+        if (user.length === 0) {
+            return res.json({ message: "User not found" });
+        }
+
+        await db.query(
+            "UPDATE users2 SET name = ?, username = ?, email = ? WHERE id = ?",
+            [name, username, email, id]
         );
 
-        res.json({ message: "User updated successfully", updatedUser: { name, username, email } });
+        res.json({ message: "User updated successfully", updatedUser: { id, name, username, email } });
     } catch (error) {
         res.json({ message: "Error updating user", error });
     }
 }
+
 
 
 

@@ -44,9 +44,9 @@
       <v-card>
         <v-card-title>Edit Account</v-card-title>
         <v-card-text>
-          <v-text-field label="Name" v-model="obj.name" />
-          <v-text-field label="Username" v-model="obj.username" />
-          <v-text-field label="Email" v-model="obj.email" />
+          <v-text-field label="Name" v-model="user.name" />
+          <v-text-field label="Username" v-model="user.username" />
+          <v-text-field label="Email" v-model="user.email" />
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
@@ -79,10 +79,12 @@ export default {
 
     async getdata() {
       const { data } = await this.$api.get("/users/userinfo");
-      this.obj.name = data.info.name;
-      this.obj.id = data.info.id;
-      this.obj.email = data.info.email;
-      this.obj.username = data.info.username;
+      
+      this.obj.name = data.info[0].name;
+      this.obj.id = data.info[0].id;
+      this.obj.email = data.info[0].email;
+      this.obj.username = data.info[0].username;
+      console.log(this.obj)
 
       this.setuser(this.obj);
     },
@@ -93,7 +95,7 @@ export default {
 
     async saveChanges() {
       try {
-        await this.$api.put("/users/update", this.user); 
+        await this.$api.put("/users/update",this.obj); 
         this.setuser(this.obj);
         this.editDialog = false;
         alert("Changes Saved");
