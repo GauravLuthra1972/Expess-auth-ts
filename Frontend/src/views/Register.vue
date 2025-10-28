@@ -65,6 +65,7 @@ export default {
         return
       }
       store.register(username.value, password.value, name.value, email.value)
+ 
     }
 
     return { username, password, confirmPassword, name, email, flag, toggle, login, register }

@@ -16,14 +16,23 @@ export const useUserStore = defineStore('user', {
       this.flag = !this.flag
     },
 
+    getcurr(){
+      console.log(this.user)
+      console.log(this.accessToken)
+      console.log(this.refreshToken)
+
+    },
+
     async login(username, password) {
       try {
         const { data } = await api.post('/login', { username, password })
+        console.log(data)
 
         if (data.accesstoken && data.refreshtoken) {
           this.user = { id: '', username, name: '', email: '' } 
           this.accessToken = data.accesstoken
           this.refreshToken = data.refreshtoken
+          alert("User Logged in")
           router.push('/users')
         } else {
           Swal.fire('Error', data.message || 'Login failed', 'error')
@@ -36,12 +45,15 @@ export const useUserStore = defineStore('user', {
     async register(username, password, name, email) {
       try {
         const { data } = await api.post('/register', { username, password, name, email })
+        console.log(data)
 
-        if (data.accesstoken && data.refreshtoken) {
+        if(data.accesstoken && data.refreshtoken) {
           this.user = { id: '', username, name, email }
           this.accessToken = data.accesstoken
           this.refreshToken = data.refreshtoken
+          alert("User Registered")
           router.push('/users')
+          this.getcurr()
         } else {
           Swal.fire('Error', data.message || 'Registration failed', 'error')
         }
@@ -54,7 +66,8 @@ export const useUserStore = defineStore('user', {
       this.user = null
       this.accessToken = null
       this.refreshToken = null
-      router.push('/login')
+      router.push('/')
     }
-  }
+  },
+  persist:true
 })

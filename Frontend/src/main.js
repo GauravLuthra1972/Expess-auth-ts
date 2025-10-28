@@ -5,8 +5,10 @@ import pinia from './plugins/pinia'
 import router from './routes/router'
 import Header from './components/Header.vue'
 import api from './plugins/api'
+import piniaPersist from 'pinia-plugin-persistedstate'
 
 import 'sweetalert2/dist/sweetalert2.min.css';
+pinia.use(piniaPersist)
 
 
 const app=createApp(App)
