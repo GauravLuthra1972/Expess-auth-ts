@@ -1,5 +1,6 @@
 import express from 'express';
 import userRoutes from './routes/userRoutes';
+import authRoutes from './routes/authRoutes'
 import dotenv from 'dotenv';
 import path from 'path';
 import cors from 'cors'
@@ -18,6 +19,7 @@ app.use(cors({
 }));
 
 app.use("/users", userRoutes);
+app.use("/auth",authRoutes)
 
 
 

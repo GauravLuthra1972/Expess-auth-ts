@@ -2,7 +2,7 @@
 import { createRouter,createWebHistory } from "vue-router";
 import Register from "../views/Register.vue";
 
-import Users from "../views/Users.vue";
+import Users from "../views/Posts.vue";
 import { useUserStore } from "../stores/userStore";
 
 

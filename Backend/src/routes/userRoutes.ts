@@ -4,10 +4,9 @@ import { authenticate } from '../middlewares/authenticate';
 
 
 const router = Router();
-router.get('/',UserController.fetchUsers)
-router.post("/register",UserController.registerUser)
-router.post("/login",UserController.loginUser)
-router.post("/refresh",UserController.refreshToken)
-router.post("/userinfo",UserController.userinfo)
+router.get('/',authenticate,UserController.fetchUsers)
+router.get("/userinfo",authenticate,UserController.userinfo)
+router.delete("/delete",authenticate,UserController.deleteUser)
+router.put("/update",authenticate,UserController.updateUser)
 
 export default router;

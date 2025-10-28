@@ -1,5 +1,4 @@
 import { Request, Response } from "express";
-import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import db from "../config/db";
 
@@ -20,128 +19,15 @@ class UserController {
         }
     }
 
-    static async registerUser(req: Request, res: Response) {
-        const { name, email, username, password } = req.body;
-
-        if (!username || !password || !email || !name) {
-            return res.json({ message: "All fields are required" });
-        }
-
-        try {
-            const [existing]: any = await db.query(
-                'SELECT * FROM users2 WHERE username = ?',
-                [username]
-            );
-
-            if (existing.length > 0) {
-                return res.json({ message: "User already Exists" });
-            }
-
-            const hashpass = bcrypt.hashSync(password, saltRounds);
-
-            const [result]: any = await db.query(
-                'INSERT INTO users2 (name, email, username, password) VALUES (?, ?, ?, ?)',
-                [name, email, username, hashpass]
-            );
-
-            const newUserId = result.insertId;
-
-            const secret: string | undefined = process.env.SECRET_KEY;
-            if (!secret) return res.json({ message: "Secret is undefined" });
-
-            const accesstoken = jwt.sign(
-                { id: newUserId, username, email, name },
-                secret,
-                { expiresIn: '1h' }
-            );
-
-            const refreshtoken = jwt.sign(
-                { id: newUserId, username, email, name },
-                secret,
-                { expiresIn: '7h' }
-            );
-
-            res.json({ message: "User Registered", accesstoken, refreshtoken });
-        } catch (error: any) {
-            console.error(error);
-            res.json({ message: "Database error" });
-        }
-    }
-
-
-
-    static async loginUser(req: Request, res: Response) {
-        const { username, password } = req.body
-
-        if (!username || !password) {
-            return res.json({ message: "Username and Password are required" })
-        }
-
-        const [existing]: any = await db.query('Select * from users2 where username=?', [username])
-
-        if (existing.length > 0) {
-            const user = existing[0]
-
-
-            const flag = bcrypt.compareSync(password, user.password)
-
-            if (flag) {
-                const secret: string | undefined = process.env.SECRET_KEY
-                console.log("secret" + secret)
-
-                if (!secret) {
-                    return res.json({ message: "Secret is undefimed" })
-                }
-
-                try {
-                    const accesstoken = jwt.sign(
-                        {
-                            id: user.id,
-                            username: user.username,
-                            email: user.email,
-                            name: user.name
-                        },
-                        secret,
-                        { expiresIn: '1h' }
-                    )
-
-                    const refreshtoken = jwt.sign(
-                        {
-                            id: user.id,
-                            username: user.username,
-                            email: user.email,
-                            name: user.name
-                        },
-                        secret,
-                        { expiresIn: '7h' }
-                    )
-
-                    res.json({ message: "Logged in Successfully", accesstoken, refreshtoken });
-
-                }
-
-                catch (err) {
-                    res.json({ message: "error", err });
-
-                }
-
-
-            }
-            else {
-                res.json({ message: "Wrong Password" });
-            }
-
-        } else {
-            res.json({ message: "User is not registered" });
-        }
-    }
-
 
     static userinfo(req: Request, res: Response) {
-        const { token } = req.body
-
+        const authheader = req.headers.authorization;
+        if (!authheader) {
+            return res.json({ message: "Authorization header missing" });
+        }
+        const token = authheader.split(" ")[1];
         if (!token) {
-            return res.json({ message: "Token is missing" })
+            return res.json({ message: "Bearer token missing" });
         }
 
         const secret: string | undefined = process.env.SECRET_KEY
@@ -150,63 +36,62 @@ class UserController {
             return res.json({ message: "Secret key is undefined" });
         }
 
-        try{
-            const info:any=jwt.verify(token,secret)
+        try {
+            const info: any = jwt.verify(token, secret)
 
-            return res.json({message:"User Data Fetched",info})
+            return res.json({ message: "User Data Fetched", info })
         }
-        catch(err){
-            res.json({message:"Error in fetching",err})
+        catch (err) {
+            res.json({ message: "Error in fetching", err })
         }
 
     }
 
 
-    static refreshToken(req: Request, res: Response) {
-        const { refreshtoken } = req.body;
-        if (!refreshtoken) {
-            return res.json({ message: "Refresh token missing" });
-        }
+    static async deleteUser(req: Request, res: Response) {
+        const authHeader = req.headers.authorization;
+        if (!authHeader) return res.json({ message: "Authorization header missing" });
+
+        const token = authHeader.split(" ")[1];
+        if (!token) return res.json({ message: "Bearer token missing" });
 
         const secret: string | undefined = process.env.SECRET_KEY;
-        if (!secret) {
-            return res.json({ message: "Secret key undefined" });
-        }
+        if (!secret) return res.json({ message: "Secret key is undefined" });
 
         try {
-            const decoded: any = jwt.verify(refreshtoken, secret);
+            const decoded: any = jwt.verify(token, secret);
+            const userId = decoded.id;
 
-            const accesstoken = jwt.sign(
-                {
-                    id: decoded.id,
-                    username: decoded.username,
-                    email: decoded.email,
-                    name: decoded.name
-                },
-                secret,
-                { expiresIn: '1h' }
-            );
+            const [result]: any = await db.query("DELETE FROM users2 WHERE id = ?", [userId]);
+            if (result.affectedRows === 0) return res.json({ message: "User not found" });
 
-            const newRefreshToken = jwt.sign(
-                {
-                    id: decoded.id,
-                    username: decoded.username,
-                    email: decoded.email,
-                    name: decoded.name
-                },
-                secret,
-                { expiresIn: '7d' }
-            );
-
-            return res.json({
-                message: "Token refreshed successfully",
-                accesstoken,
-                refreshtoken: newRefreshToken
-            });
-        } catch {
-            return res.status(403).json({ message: "Invalid or expired refresh token" });
+            return res.json({ message: "User deleted successfully", id: userId });
+        } catch (error) {
+            return res.json({ message: "Error deleting user", error });
         }
     }
+
+
+  static async updateUser(req: Request, res: Response) {
+    const { name, username, email } = req.body;
+
+    try {
+        const [result]: any = await db.query(
+            "UPDATE users2 SET name = ?, username = ? , email = ?",
+            [name, username, email]
+        );
+
+        res.json({ message: "User updated successfully", updatedUser: { name, username, email } });
+    } catch (error) {
+        res.json({ message: "Error updating user", error });
+    }
+}
+
+
+
+
+
+
 }
 
 

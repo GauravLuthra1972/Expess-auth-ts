@@ -23,9 +23,16 @@ export const useUserStore = defineStore('user', {
 
     },
 
+
+    setuser(obj){
+      this.user=obj
+    },
+
+    
+
     async login(username, password) {
       try {
-        const { data } = await api.post('/login', { username, password })
+        const { data } = await api.post('/auth/login', { username, password })
         console.log(data)
 
         if (data.accesstoken && data.refreshtoken) {
@@ -44,7 +51,7 @@ export const useUserStore = defineStore('user', {
 
     async register(username, password, name, email) {
       try {
-        const { data } = await api.post('/register', { username, password, name, email })
+        const { data } = await api.post('/auth/register', { username, password, name, email })
         console.log(data)
 
         if(data.accesstoken && data.refreshtoken) {
