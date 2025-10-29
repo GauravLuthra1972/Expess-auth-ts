@@ -87,7 +87,8 @@ class authController {
                             id: user.id,
                             username: user.username,
                             email: user.email,
-                            name: user.name
+                            name: user.name,
+                            role:user.role
                         },
                         secret,
                         { expiresIn: '1h' }
