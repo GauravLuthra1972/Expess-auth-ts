@@ -1,22 +1,19 @@
 <template>
   <v-container fluid class="pa-0 ma-0">
-    <DxDataGrid
-      height="700"
-      :data-source="{ store: users }"
-      :show-borders="true"
-      :column-auto-width="true"
-      :row-alternation-enabled="true"
-      :show-column-lines="true"
-      :show-row-lines="true"
-      :paging="{ pageSize: pageSize }"
-      :pager="{
-        showPageSizeSelector: true,
-        allowedPageSizes: [5, 10, 20],
-        showInfo: true,
-        visible: true
-      }"
-      @option-changed="onOptionChanged"
-    >
+    <DxDataGrid  :data-source="{ store: users }" :show-borders="true" :column-auto-width="true"
+      :row-alternation-enabled="true" :show-column-lines="true" :show-row-lines="true" :paging="{ pageSize: pageSize }"
+      :filter-row="{
+        visible: true,
+        applyFilter: 'auto',
+        showOperationChooser: true
+      }" :pager="{
+    showPageSizeSelector: true,
+    allowedPageSizes: [5, 10, 20],
+    showInfo: true,
+    visible: true
+  }" @option-changed="onOptionChanged">
+
+
       <DxColumn data-field="profile_pic" caption="Profile" cell-template="profileTemplate" width="100" />
       <DxColumn data-field="name" caption="Name" />
       <DxColumn data-field="username" caption="Username" />
@@ -100,6 +97,7 @@ export default {
     async fetchUsers(page = 1, pageSize = this.pageSize) {
       try {
         const { data } = await this.$api.get('/users', { params: { pageNo: page, count: pageSize } });
+        console.log(data)
         this.users = data.data.map(user => ({
           ...user,
           created_at: this.formatDate(user.created_at),
