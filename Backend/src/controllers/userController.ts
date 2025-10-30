@@ -6,15 +6,47 @@ const saltRounds = 10
 
 class UserController {
 
+    // static async fetchUsers(req: Request, res: Response) {
+    //     try {
+    //         const [rows]: any = await db.query('SELECT * FROM users2');
+    //         res.json(rows);
+    //     }
+    //     catch (err) {
+    //         console.error(err);
+    //         res.json({ message: "Internal Server Error" });
+    //     }
+    // }
+
+
     static async fetchUsers(req: Request, res: Response) {
+
         try {
-            const [rows]: any = await db.query('SELECT * FROM users2');
-            res.json(rows);
+            const pageNo = parseInt(req.query.pageNo as string) || 1;
+            const count = parseInt(req.query.count as string) || 10;
+            const offset = (pageNo - 1) * count
+
+
+            const [rows]: any = await db.query('Select * from users2 Limit ? OFFSET ?', [count, offset])
+
+            const [countResult]: any = await db.query('SELECT count(*) as total from users2')
+            const total = countResult[0].total;
+
+            res.json({
+                data: rows,
+                currpage: pageNo,
+                totalPages: Math.ceil(total / count),
+                totalUsers: total
+            });
+
         }
-        catch (err) {
-            console.error(err);
-            res.json({ message: "Internal Server Error" });
+
+        catch(err){
+            res.json({message:"error",err})
         }
+
+        
+       
+
     }
 
 
