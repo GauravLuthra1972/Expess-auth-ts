@@ -17,7 +17,7 @@
           <v-text-field label="Confirm Password" v-model="confirmPassword"></v-text-field>
         </div>
 
-        <v-checkbox v-model="store.isRemember" label="Remember Me" class="ma-0"></v-checkbox>
+        <v-checkbox v-model="store.isRemember" label="Remember Me" class="ma-0" @click="toggleremember"></v-checkbox>
 
       
         <div class="d-flex align-center flex-column" style="gap: 10px;">
@@ -55,8 +55,12 @@ export default {
     }
   },
   methods: {
+  
     toggleFlag() {
       this.store.toggleFlag()
+    },
+    toggleremember(){
+      this.store.toggleremember()
     },
     login() {
       this.store.login(this.username, this.password)

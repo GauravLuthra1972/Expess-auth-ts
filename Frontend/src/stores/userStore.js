@@ -18,11 +18,17 @@ export const useUserStore = defineStore('user', {
       this.refreshToken = refreshToken;
     },
 
+    toggleremember(){
+      this.isRemember=!this.isRemember
+
+    }
+    ,
     async fetchUser() {
       try {
         const { data } = await api.get('/users/userinfo')
         this.user = data.info[0]
         console.log(this.user)
+
       } catch (error) {
         console.error('Error fetching user info:', error)
       }

@@ -36,7 +36,7 @@
       </template>
     </DxDataGrid>
 
-    <div class="d-flex justify-center align-center pa-0 ma-0 mt-3">
+    <div class="d-flex justify-center align-center pa-0 ma-0 ">
       <v-btn :disabled="currentPage <= 1" @click="goToPreviousPage" color="primary">Previous</v-btn>
       <v-btn :disabled="currentPage >= totalPages" @click="goToNextPage" color="primary" class="ml-2">Next</v-btn>
       <span class="ml-4">Page {{ currentPage }} of {{ totalPages }}</span>

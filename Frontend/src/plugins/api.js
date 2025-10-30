@@ -19,9 +19,18 @@ api.interceptors.request.use((config)=>{
 api.interceptors.response.use(
   response => response,
   async error => {
+    
+  
     console.log("refreshing")
     const userStore = useUserStore();
-    const originalRequest = error.config;
+      console.log(userStore.isRemember)
+
+      if(!userStore.isRemember){
+        userStore.logout();
+      }
+
+      else{
+        const originalRequest = error.config;
     
 
     if (error.response?.status === 401 && !originalRequest._retry) {
@@ -37,6 +46,9 @@ api.interceptors.response.use(
       }
     }
 
+
+      }
+    
     return Promise.reject(error);
   }
 );
