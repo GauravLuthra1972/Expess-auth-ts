@@ -8,65 +8,112 @@ export const useUserStore = defineStore('user', {
     user: null,
     accessToken: null,
     refreshToken: null,
-    flag: true,
+    flag:false,
+    isRemember:false
   }),
 
   actions: {
-    toggleFlag() {
-      this.flag = !this.flag
+    setTokens(accessToken, refreshToken) {
+      this.accessToken = accessToken;
+      this.refreshToken = refreshToken;
     },
 
-    getcurr(){
-      console.log(this.user)
-      console.log(this.accessToken)
-      console.log(this.refreshToken)
-
+    async fetchUser() {
+      try {
+        const { data } = await api.get('/users/userinfo')
+        this.user = data.info[0]
+        console.log(this.user)
+      } catch (error) {
+        console.error('Error fetching user info:', error)
+      }
     },
-
-
-    setuser(obj){
-      this.user=obj
-    },
-
-    
 
     async login(username, password) {
       try {
         const { data } = await api.post('/auth/login', { username, password })
         console.log(data)
-
         if (data.accesstoken && data.refreshtoken) {
-          this.user = { id: '', username, name: '', email: '' } 
           this.accessToken = data.accesstoken
           this.refreshToken = data.refreshtoken
-          alert("User Logged in")
-          router.push('/users')
+          await this.fetchUser()
+          alert('User Logged in')
+          router.push('/posts')
         } else {
           Swal.fire('Error', data.message || 'Login failed', 'error')
+
+          if(data.message=='User is not registered'){
+          this.toggleFlag()
+
+        }
+          
         }
       } catch (error) {
         Swal.fire('Error', error.response?.data?.message || 'Login failed', 'error')
+
+        
+        
+        
       }
     },
 
     async register(username, password, name, email) {
       try {
         const { data } = await api.post('/auth/register', { username, password, name, email })
-        console.log(data)
-
-        if(data.accesstoken && data.refreshtoken) {
-          this.user = { id: '', username, name, email }
+        if (data.accesstoken && data.refreshtoken) {
           this.accessToken = data.accesstoken
           this.refreshToken = data.refreshtoken
-          alert("User Registered")
-          router.push('/users')
-          this.getcurr()
+          await this.fetchUser()
+          alert('User Registered')
+          router.push('/posts')
         } else {
           Swal.fire('Error', data.message || 'Registration failed', 'error')
+          this.toggleFlag()
         }
       } catch (error) {
         Swal.fire('Error', error.response?.data?.message || 'Registration failed', 'error')
       }
+    },
+
+    async updateUser(updates) {
+      try {
+        await api.put('/users/update', updates)
+        this.user = { ...this.user, ...updates }
+        alert('Changes Saved')
+      } catch {
+        alert('Error saving changes')
+      }
+    },
+
+    async deleteUser() {
+      try {
+        await api.delete('/users/delete')
+        alert('User Deleted')
+        this.logout()
+      } catch {
+        alert('Error Occurred')
+      }
+    },
+
+    async uploadProfile(file) {
+      try {
+        const formData = new FormData()
+        formData.append('image', file)
+        formData.append('id', this.user.id)
+        const res = await fetch('http://localhost:8080/users/profile', {
+          method: 'POST',
+          body: formData
+        })
+        const data = await res.json()
+        if (data.file) this.user.profile_pic = data.file
+        alert('Upload successful!')
+      } catch {
+        alert('Error uploading file')
+      }
+    },
+
+    toggleFlag(){
+      this.flag=!this.flag
+
     },
 
     logout() {
@@ -76,5 +123,5 @@ export const useUserStore = defineStore('user', {
       router.push('/')
     }
   },
-  persist:true
+  persist: true
 })

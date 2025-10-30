@@ -13,22 +13,18 @@
 
         <v-text-field label="Username" v-model="username"></v-text-field>
         <v-text-field label="Password" v-model="password"></v-text-field>
-
-        <div v-if="flag">
+          <div v-if="flag">
           <v-text-field label="Confirm Password" v-model="confirmPassword"></v-text-field>
         </div>
 
+        <v-checkbox v-model="store.isRemember" label="Remember Me" class="ma-0"></v-checkbox>
+
+      
         <div class="d-flex align-center flex-column" style="gap: 10px;">
-          <v-btn
-            variant="flat"
-            @click="!flag ? login() : register()"
-            width="80%"
-            color="primary"
-            rounded
-          >
+          <v-btn variant="flat" @click="!flag ? login() : register()" width="80%" color="primary" rounded>
             {{ !flag ? 'Login' : 'Signup' }}
           </v-btn>
-          <p style="cursor: pointer;" @click="toggle">
+          <p style="cursor: pointer;" @click="toggleFlag">
             {{ !flag ? 'New to Site? Register now' : 'Already have an account? Login' }}
           </p>
         </div>
@@ -38,37 +34,40 @@
 </template>
 
 <script>
-import { ref, computed } from 'vue'
 import { useUserStore } from '../stores/userStore'
 
 export default {
-  setup() {
-    const store = useUserStore()
-
-    const username = ref('')
-    const password = ref('')
-    const confirmPassword = ref('')
-    const name = ref('')
-    const email = ref('')
-
-    const flag = computed(() => store.flag)
-
-    const toggle = () => store.toggleFlag()
-
-    const login = () => {
-      store.login(username.value, password.value)
+  data() {
+    return {
+      username: '',
+      password: '',
+      confirmPassword: '',
+      name: '',
+      email: ''
     }
-
-    const register = () => {
-      if (password.value !== confirmPassword.value) {
+  },
+  computed: {
+    store() {
+      return useUserStore()
+    },
+    flag() {
+      return this.store.flag
+    }
+  },
+  methods: {
+    toggleFlag() {
+      this.store.toggleFlag()
+    },
+    login() {
+      this.store.login(this.username, this.password)
+    },
+    register() {
+      if (this.password !== this.confirmPassword) {
         alert('Passwords do not match!')
         return
       }
-      store.register(username.value, password.value, name.value, email.value)
- 
+      this.store.register(this.username, this.password, this.name, this.email)
     }
-
-    return { username, password, confirmPassword, name, email, flag, toggle, login, register }
   }
 }
 </script>

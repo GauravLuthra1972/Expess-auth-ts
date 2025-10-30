@@ -16,33 +16,33 @@ api.interceptors.request.use((config)=>{
 
 })
 
+api.interceptors.response.use(
+  response => response,
+  async error => {
+    console.log("refreshing")
+    const userStore = useUserStore();
+    const originalRequest = error.config;
+    
+
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      try {
+        const { data } = await api.post("/auth/refresh", { refreshtoken: userStore.refreshToken });
+        userStore.setTokens(data.accesstoken, data.refreshtoken);
+        originalRequest.headers.Authorization = `Bearer ${data.accesstoken}`;
+        return api(originalRequest);
+      } catch {
+        userStore.logout();
+        return Promise.reject(error);
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
+
+
 export default api
 
 
-// api.interceptors.response.use(
-//   response => {
-//     console.log("Interceptor");
-//     return response;
-//   },
-//   async error => {
-//     const originalRequest = error.config;
-
-//     if (error.response && error.response.status === 401 && !originalRequest._retry) {
-//       originalRequest._retry = true;
-
-//       try {
-
-//         const newAccessToken = await store.dispatch('refreshAccessToken');
-
-//         if (newAccessToken) {
-//           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-//           return api(originalRequest);
-//         }
-//       } catch (refreshError) {
-//         return Promise.reject(refreshError);
-//       }
-//     }
-
-//     return Promise.reject(error);
-//   }
-// );

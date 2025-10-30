@@ -1,60 +1,97 @@
 <template>
-  <v-container fluid >
+  <v-container fluid class="pa-0 ma-0">
+    <DxDataGrid   :data-source="users" :show-borders="true" :column-auto-width="true" :row-alternation-enabled="true"
+      :show-column-lines="true" :show-row-lines="true" :paging="{ pageSize: 10 } " :filter-row="{ visible: true, applyFilter: 'auto' }">
+      <DxColumn data-field="profile_pic" caption="Profile" cell-template="profileTemplate" width="100" />
+      <DxColumn data-field="name" caption="Name" />
+      <DxColumn data-field="username" caption="Username" />
+      <DxColumn data-field="email" caption="Email" />
+      <DxColumn data-field="created_at" caption="Joined Date" width="250" />
+      <DxColumn data-field="role" caption="Role" width="100" />
+      <DxColumn caption="Actions" cell-template="actionsTemplate" width="200" />
 
-
-    <v-data-table
-      :headers="headers"
-      :items="users"
-      class="elevation-2"
-      :items-per-page="10"
-      show-header
-    >
-
-      <template #item.profile_pic="{ item }">
-        <v-avatar size="50">
-          <v-img :src="item.profile_pic || defaultprofile" />
-        </v-avatar>
+      <template #profileTemplate="{ data }">
+        <div style="display:flex;justify-content:center;">
+          <img :src="data.data.profile_pic || defaultprofile" style="width:50px;height:50px;border-radius:50%;" />
+        </div>
       </template>
 
-      <template #item.actions="{ item }">
-        <v-btn color="red-darken-3" @click="deleteUser(item.id)">
-          Delete
-        </v-btn>
+      <template #actionsTemplate="{ data }">
+        <div class="d-flex ga-3">
+          <v-btn color="primary" @click="openedit(data.data)">
+            Edit
+          </v-btn>
+          <v-btn color="red-darken-3" @click="deleteUser(data.data.id)">
+            Delete
+          </v-btn>
+        </div>
       </template>
-    </v-data-table>
+    </DxDataGrid>
+
+
+    <v-dialog v-model="editDialog" max-width="500">
+      <v-card>
+        <v-card-title>Edit User</v-card-title>
+        <v-card-text>
+          <v-text-field label="Name" v-model="selectedUser.name" />
+          <v-text-field label="Username" v-model="selectedUser.username" />
+          <v-text-field label="Email" v-model="selectedUser.email" />
+
+          <v-select v-model="selectedUser.role" :items="roles" dense outlined label="role" />
+
+
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn text @click="editDialog = false">Cancel</v-btn>
+          <v-btn color="primary" @click="saveEditedUser">Save</v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+
   </v-container>
+
+
 </template>
 
 <script>
+import DxDataGrid, { DxColumn } from "devextreme-vue/data-grid";
+import Swal from "sweetalert2";
+import { useUserStore } from "../stores/userStore";
+import { mapState } from "pinia";
+
 export default {
+  components: { DxDataGrid, DxColumn },
   data() {
     return {
       users: [],
+      editDialog: false,
       defaultprofile: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
-      headers: [
-        { title: "Profile", key: "profile_pic"},
-        { title: "Name", key: "name" },
-        { title: "Username", key: "username" },
-        { title: "Email", key: "email" },
-        { title: "Joined Date", key: "created_at" },
-        { title: "Actions", key: "actions"},
-      ],
+      selectedUser: {
+        id: null,
+        name: "",
+        username: "",
+        email: "",
+        role: ""
+      },
+
+      roles: ["user", "admin", "moderator", "editor", "guest", "superadmin"]
+
     };
   },
-
   mounted() {
-    this.$api.get("/users")
-      .then(({ data }) => {
-      
-        this.users = data.map(user => ({
-          ...user,
-          created_at: this.formatDate(user.created_at),
-          profile_pic: user.profile_pic || this.defaultprofile
-        }));
-      })
-      .catch(err => console.error("Error fetching users:", err));
+    this.mounted()
+
+    console.log("testaccess"+this.accessToken)
+
+
+
   },
 
+  computed:{
+     ...mapState(() => useUserStore(), ['accessToken'])
+  },
   methods: {
     formatDate(dateStr) {
       if (!dateStr) return "N/A";
@@ -62,36 +99,107 @@ export default {
       return new Date(dateStr).toLocaleDateString(undefined, options);
     },
 
-    deleteUser(id) {
-      if (!confirm("Are you sure you want to delete this user?")) return;
+    async mounted() {
+      try {
+        const { data } = await this.$api.get("/users");
+        this.users = data.map((user) => ({
+          ...user,
+          created_at: this.formatDate(user.created_at),
+          profile_pic: user.profile_pic || this.defaultprofile,
+        }));
 
-      this.$api.delete(`/users/deletebyid/${id}`)
-        .then(() => {
-          this.users = this.users.filter(user => user.id !== id);
-          alert("User Deleted");
-        })
-        .catch(err => {
-          console.error(err);
-          alert("Failed to delete user");
-        });
+        console.log(this.users)
+      } catch (err) {
+        console.error("Error fetching users:", err);
+      }
+    }
+    ,
+    async deleteUser(id) {
+      const result = await Swal.fire({
+        title: "Are you sure?",
+        text: "You won't be able to revert this!",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#d33",
+        cancelButtonColor: "#3085d6",
+        confirmButtonText: "Yes, delete it!",
+      });
+
+      if (result.isConfirmed) {
+        try {
+          await this.$api.delete(`/users/deletebyid/${id}`);
+          this.users = this.users.filter((user) => user.id !== id);
+
+          Swal.fire({
+            title: "Deleted!",
+            text: "User has been deleted.",
+            icon: "success",
+            timer: 1500,
+            showConfirmButton: false,
+          });
+        } catch (error) {
+          console.error(error);
+          Swal.fire({
+            title: "Error!",
+            text: "Failed to delete user.",
+            icon: "error",
+          });
+        }
+      }
     },
+
+
+    async saveEditedUser() {
+      this.editDialog = false
+      const result = await Swal.fire({
+        title: "Are you sure?",
+        text: "Do you want to save changes to this user?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonText: "Yes, save it!",
+        cancelButtonText: "Cancel",
+      });
+
+      if (result.isConfirmed) {
+        try {
+          const { id, name, username, email, role } = this.selectedUser;
+          await this.$api.put(`/users/adminupdate`, { id, name, username, email, role });
+          const index = this.users.findIndex(u => u.id === id);
+
+          if (index !== -1) {
+            this.users[index].name = name;
+            this.users[index].username = username;
+            this.users[index].email = email;
+            this.users[index].role = role;
+          }
+          this.editDialog = false;
+          Swal.fire("Success", "User updated successfully", "success");
+        } catch {
+          Swal.fire("Error", "Failed to update user", "error");
+        }
+      }
+
+      else {
+        this.editDialog = true
+      }
+    }
+
+    ,
+
+    openedit(data) {
+      this.selectedUser = { ...data }
+      this.editDialog = true
+
+      console.log(this.selectedUser)
+    }
   },
 };
 </script>
 
+
 <style scoped>
-.v-data-table {
+.dx-datagrid {
   border-radius: 10px;
   overflow: hidden;
-}
-
-.v-avatar img {
-  border-radius: 50%;
-  width: 50px;
-  height: 50px;
-}
-
-h1 {
-  font-weight: bold;
 }
 </style>

@@ -11,5 +11,6 @@ router.delete("/delete",authenticate,UserController.deleteUser)
 router.put("/update",UserController.updateUser)
 router.post("/profile", uploadProfile.single("image"), UserController.profileUpload);
 router.delete("/deletebyid/:id",UserController.deletebyId)
+router.put("/adminupdate",UserController.adminUpdateUser)
 
 export default router;

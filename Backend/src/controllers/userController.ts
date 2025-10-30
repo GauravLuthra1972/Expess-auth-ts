@@ -72,19 +72,19 @@ class UserController {
         }
     }
 
-    static async deletebyId(req: Request, res: Response){
-        const {id}=req.params
+    static async deletebyId(req: Request, res: Response) {
+        const { id } = req.params
 
-        try{
-            await db.query("Delete from users2 where id=?",[id])
-            return res.json({message:"User Deleted"})
+        try {
+            await db.query("Delete from users2 where id=?", [id])
+            return res.json({ message: "User Deleted" })
 
         }
-        catch(err){
-            res.json({"message":"Error Deleted",err})
+        catch (err) {
+            res.json({ "message": "Error Deleted", err })
         }
 
-        
+
     }
 
 
@@ -108,6 +108,26 @@ class UserController {
             res.json({ message: "Error updating user", error });
         }
     }
+
+
+    static async adminUpdateUser(req: Request, res: Response) {
+        const { id, name, username, email, role } = req.body;
+
+        try {
+            const [user]: any = await db.query("SELECT * FROM users2 WHERE id = ?", [id]);
+            if (user.length == 0) return res.json({ message: "User not found" });
+
+            await db.query(
+                "UPDATE users2 SET name = ?, username = ?, email = ?, role = ? WHERE id = ?",
+                [name, username, email, role, id]
+            );
+
+            res.json({ message: "User updated successfully" });
+        } catch (error) {
+            res.status(500).json({ message: "Error updating user", error });
+        }
+    }
+
 
     static async profileUpload(req: Request, res: Response) {
         try {
