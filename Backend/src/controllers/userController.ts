@@ -36,24 +36,75 @@ class UserController {
     //     }
     // }
 
-
     static async fetchUsers(req: Request, res: Response) {
         try {
             const skip = parseInt(req.query.skip as string) || 0;
             const take = parseInt(req.query.take as string) || 10;
             const sort = req.query.sort ? JSON.parse(req.query.sort as string) : [];
+            const filter = req.query.filter ? JSON.parse(req.query.filter as string) : [];
+
+            console.log(filter)
+
+            let where = "";
+
+            if (filter.length > 0) {
+
+                if (typeof filter[0] == 'string') {
+                    const [field, temp, value] = filter;
+                    where = `WHERE ${field} LIKE '%${value}%'`
+
+                    console.log("str33 " + filter[0] + filter[1] + filter[2])
+                    console.log(where)
+                }
+
+                else {
+
+                    const str: string[] = [];
+
+                    for (let i = 0; i < filter.length; i++) {
+                        const item = filter[i];
+                        console.log(item)
+
+
+                        if (Array.isArray(item)) {
+                            const [field, temp, value] = item;
+
+                            str.push(`${field} LIKE '%${value}%'`);
+
+
+                        } else {
+                            str.push(item.toUpperCase());
+                        }
+                    }
+
+                    if (str.length > 0) {
+                        console.log(str)
+                        where = "WHERE " + str.join(" ");
+                    }
+
+                }
+            }
+
+            console.log("where213234" + where)
+
+            // if (filter.length === 3) {
+            //     const [field, , value] = filter;
+            //    where = `WHERE ${field} LIKE '%${value}%' AND email LIKE '%gagan%'`;
+
+            // }
 
             let order = "";
             if (sort.length > 0) {
                 const { selector, desc } = sort[0];
                 order = `ORDER BY ${selector} ${desc ? "DESC" : "ASC"}`;
-               
-             }
+            }
 
-             const query=`Select * from users2 ${order} Limit ? Offset ?`
-             
-            const [rows]: any = await db.query(query, [take, skip]);
-            const [countResult]: any = await db.query("SELECT COUNT(*) AS total FROM users2");
+            const query = `SELECT * FROM users2 ${where} ${order} LIMIT ${take} OFFSET ${skip}`;
+            console.log("query" + query)
+            const countQuery = `SELECT COUNT(*) AS total FROM users2 ${where}`;
+
+            const [rows]: any = await db.query(query);
+            const [countResult]: any = await db.query(countQuery);
             const total = countResult[0].total;
 
             res.json({
@@ -65,7 +116,6 @@ class UserController {
             res.status(500).json({ message: "error", err });
         }
     }
-
 
 
     static async userinfo(req: Request, res: Response) {

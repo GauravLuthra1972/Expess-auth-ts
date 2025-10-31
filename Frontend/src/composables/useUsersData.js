@@ -21,8 +21,10 @@ export default function useUsersData() {
     const skip = loadOptions.skip ?? 0;
     const take = loadOptions.take ?? 10;
     const sort = JSON.stringify(loadOptions.sort || []);
+    const filter = JSON.stringify(loadOptions.filter || []);
+    
     try {
-      const response = await api.get("/users", { params: { skip, take, sort } });
+      const response = await api.get("/users", { params: { skip, take, sort, filter } });
 
         const data = response.data.data.map((user) => ({
           ...user,
