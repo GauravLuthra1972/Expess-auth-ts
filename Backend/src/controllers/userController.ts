@@ -17,37 +17,55 @@ class UserController {
     //     }
     // }
 
+    // static async fetchUsers(req: Request, res: Response) {
+    //     try {
+    //         const skip = parseInt(req.query.skip as string) || 0;
+    //         const take = parseInt(req.query.take as string) || 10;
+
+
+    //         const [rows]: any = await db.query('SELECT * FROM users2 LIMIT ? OFFSET ?', [take, skip]);
+    //         const [countResult]: any = await db.query('SELECT COUNT(*) AS total FROM users2');
+    //         const total = countResult[0].total;
+
+    //         res.json({
+    //             data: rows,
+    //             totalCount: total
+    //         });
+    //     } catch (err) {
+    //         res.json({ message: "error", err });
+    //     }
+    // }
+
 
     static async fetchUsers(req: Request, res: Response) {
-
         try {
-            const pageNo = parseInt(req.query.pageNo as string) || 1;
-            const count = parseInt(req.query.count as string) || 10;
-            const offset = (pageNo - 1) * count
+            const skip = parseInt(req.query.skip as string) || 0;
+            const take = parseInt(req.query.take as string) || 10;
+            const sort = req.query.sort ? JSON.parse(req.query.sort as string) : [];
 
+            let order = "";
+            if (sort.length > 0) {
+                const { selector, desc } = sort[0];
+                order = `ORDER BY ${selector} ${desc ? "DESC" : "ASC"}`;
+               
+             }
 
-            const [rows]: any = await db.query('Select * from users2 Limit ? OFFSET ?', [count, offset])
-
-            const [countResult]: any = await db.query('SELECT count(*) as total from users2')
+             const query=`Select * from users2 ${order} Limit ? Offset ?`
+             
+            const [rows]: any = await db.query(query, [take, skip]);
+            const [countResult]: any = await db.query("SELECT COUNT(*) AS total FROM users2");
             const total = countResult[0].total;
 
             res.json({
                 data: rows,
-                currpage: pageNo,
-                totalPages: Math.ceil(total / count),
-                totalUsers: total
+                totalCount: total,
             });
-
+        } catch (err) {
+            console.error(err);
+            res.status(500).json({ message: "error", err });
         }
-
-        catch(err){
-            res.json({message:"error",err})
-        }
-
-        
-       
-
     }
+
 
 
     static async userinfo(req: Request, res: Response) {
@@ -146,19 +164,32 @@ class UserController {
         const { id, name, username, email, role } = req.body;
 
         try {
-            const [user]: any = await db.query("SELECT * FROM users2 WHERE id = ?", [id]);
-            if (user.length == 0) return res.json({ message: "User not found" });
 
+            const [userResult]: any = await db.query("SELECT * FROM users2 WHERE id = ?", [id]);
+            if (!userResult || userResult.length === 0) {
+                return res.json({ message: "User not found" });
+            }
+
+            const existingUser = userResult[0];
+
+
+            const updatedUser = {
+                name: name ?? existingUser.name,
+                username: username ?? existingUser.username,
+                email: email ?? existingUser.email,
+                role: role ?? existingUser.role
+            };
             await db.query(
                 "UPDATE users2 SET name = ?, username = ?, email = ?, role = ? WHERE id = ?",
-                [name, username, email, role, id]
+                [updatedUser.name, updatedUser.username, updatedUser.email, updatedUser.role, id]
             );
 
             res.json({ message: "User updated successfully" });
         } catch (error) {
-            res.status(500).json({ message: "Error updating user", error });
+            res.json({ message: "Error updating user", error });
         }
     }
+
 
 
     static async profileUpload(req: Request, res: Response) {

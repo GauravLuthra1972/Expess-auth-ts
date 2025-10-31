@@ -1,10 +1,10 @@
 <template>
   <v-container fluid class="pa-0 ma-0">
     <DxDataGrid  :data-source="{ store: users }" :show-borders="true" :column-auto-width="true"
-      :row-alternation-enabled="true" :show-column-lines="true" :show-row-lines="true" :paging="{ pageSize: pageSize }"
+      :row-alternation-enabled="true"  :paging="{ pageSize: pageSize }"
       :filter-row="{
         visible: true,
-        applyFilter: 'auto',
+       
         showOperationChooser: true
       }" :pager="{
     showPageSizeSelector: true,

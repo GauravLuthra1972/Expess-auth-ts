@@ -91,7 +91,7 @@ class authController {
                             role:user.role
                         },
                         secret,
-                        { expiresIn: '10s' }
+                        { expiresIn: '1h' }
                     )
 
                     const refreshtoken = jwt.sign(

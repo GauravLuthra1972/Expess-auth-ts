@@ -11,8 +11,8 @@
   "dependencies": {
     "@mdi/font": "^7.4.47",
     "axios": "^1.12.2",
-    "devextreme": "^25.1.6",
-    "devextreme-vue": "^25.1.6",
+    "devextreme": "^24.2.9",
+    "devextreme-vue": "^24.2.9",
     "pinia": "^3.0.3",
     "pinia-plugin-persistedstate": "^4.5.0",
     "sass": "^1.93.2",
