@@ -5,13 +5,17 @@
     <Header v-if="accessToken"></Header>
     
 
-    <v-main class="bg-black">
+    <v-main v-if="$route.name!='users'" class="bg-black">
 
 
 
       <router-view></router-view>
 
     </v-main>
+     <v-main v-if="$route.name === 'users'">
+      <router-view></router-view>
+    </v-main>
+    
   </v-app>
 </template>
 

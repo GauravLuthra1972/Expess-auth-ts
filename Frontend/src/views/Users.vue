@@ -15,8 +15,7 @@
       :ref="usersData.dataGridRef"
       :selection="{ mode: 'multiple', showCheckBoxesMode: 'always' }"
     >
-
-      <DxToolbar>
+     <DxToolbar>
   <DxItem
     name="exportButton"
     location="after"
@@ -34,7 +33,7 @@
   />
 
   <DxItem
-    location="after"
+    location="before"
     widget="dxButton"
     :options="{
       icon: 'refresh',
@@ -44,6 +43,8 @@
     }"
   />
 </DxToolbar>
+
+     
 
 
       <DxColumn data-field="profile_pic" caption="Profile" cell-template="profileTemplate" width="100" />
@@ -66,7 +67,11 @@
           />
         </div>
       </template>
+
+
+      
     </DxDataGrid>
+    
   </v-container>
 </template>
 
