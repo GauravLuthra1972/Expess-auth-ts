@@ -6,35 +6,47 @@ const saltRounds = 10
 
 class UserController {
 
-    // static async fetchUsers(req: Request, res: Response) {
-    //     try {
-    //         const [rows]: any = await db.query('SELECT * FROM users2');
-    //         res.json(rows);
-    //     }
-    //     catch (err) {
-    //         console.error(err);
-    //         res.json({ message: "Internal Server Error" });
-    //     }
-    // }
-
-    // static async fetchUsers(req: Request, res: Response) {
-    //     try {
-    //         const skip = parseInt(req.query.skip as string) || 0;
-    //         const take = parseInt(req.query.take as string) || 10;
 
 
-    //         const [rows]: any = await db.query('SELECT * FROM users2 LIMIT ? OFFSET ?', [take, skip]);
-    //         const [countResult]: any = await db.query('SELECT COUNT(*) AS total FROM users2');
-    //         const total = countResult[0].total;
+    static buildwhere(filter: any[]): string {
+        let where = "";
 
-    //         res.json({
-    //             data: rows,
-    //             totalCount: total
-    //         });
-    //     } catch (err) {
-    //         res.json({ message: "error", err });
-    //     }
-    // }
+
+        if (typeof filter[0] === 'string') {
+            const [field, , value] = filter;
+            where = `WHERE ${field} LIKE '%${value}%'`;
+        } else {
+            const str: string[] = [];
+            for (const item of filter) {
+                if (Array.isArray(item)) {
+                    const [field, , value] = item;
+                    str.push(`${field} LIKE '%${value}%'`);
+                } else {
+                    str.push(item.toUpperCase());
+                }
+            }
+            if (str.length > 0) {
+                where = "WHERE " + str.join(" ");
+            }
+        }
+
+        return where
+
+
+    }
+
+    static buildorder(sort: any[]): string {
+        let order = "";
+
+        const { selector, desc } = sort[0];
+        order = `ORDER BY ${selector} ${desc ? "DESC" : "ASC"}`;
+
+
+        return order
+
+    }
+
+
 
     static async fetchUsers(req: Request, res: Response) {
         try {
@@ -42,80 +54,43 @@ class UserController {
             const take = parseInt(req.query.take as string) || 10;
             const sort = req.query.sort ? JSON.parse(req.query.sort as string) : [];
             const filter = req.query.filter ? JSON.parse(req.query.filter as string) : [];
+            const requireTotalCount = req.query.requireTotalCount
+            console.log("require", requireTotalCount)
 
-            console.log(filter)
 
             let where = "";
+            if (filter && filter.length > 0) {
+                where = UserController.buildwhere(filter)
 
-            if (filter.length > 0) {
-
-                if (typeof filter[0] == 'string') {
-                    const [field, temp, value] = filter;
-                    where = `WHERE ${field} LIKE '%${value}%'`
-
-                    console.log("str33 " + filter[0] + filter[1] + filter[2])
-                    console.log(where)
-                }
-
-                else {
-
-                    const str: string[] = [];
-
-                    for (let i = 0; i < filter.length; i++) {
-                        const item = filter[i];
-                        console.log(item)
-
-
-                        if (Array.isArray(item)) {
-                            const [field, temp, value] = item;
-
-                            str.push(`${field} LIKE '%${value}%'`);
-
-
-                        } else {
-                            str.push(item.toUpperCase());
-                        }
-                    }
-
-                    if (str.length > 0) {
-                        console.log(str)
-                        where = "WHERE " + str.join(" ");
-                    }
-
-                }
             }
 
-            console.log("where213234" + where)
-
-            // if (filter.length === 3) {
-            //     const [field, , value] = filter;
-            //    where = `WHERE ${field} LIKE '%${value}%' AND email LIKE '%gagan%'`;
-
-            // }
 
             let order = "";
-            if (sort.length > 0) {
-                const { selector, desc } = sort[0];
-                order = `ORDER BY ${selector} ${desc ? "DESC" : "ASC"}`;
+            if (sort && sort.length > 0) {
+                order = UserController.buildorder(sort)
+
             }
 
+
+
             const query = `SELECT * FROM users2 ${where} ${order} LIMIT ${take} OFFSET ${skip}`;
-            console.log("query" + query)
-            const countQuery = `SELECT COUNT(*) AS total FROM users2 ${where}`;
-
             const [rows]: any = await db.query(query);
-            const [countResult]: any = await db.query(countQuery);
-            const total = countResult[0].total;
 
-            res.json({
-                data: rows,
-                totalCount: total,
-            });
+            const result: any = { data: rows };
+
+            if (requireTotalCount) {
+                const countQuery = `SELECT COUNT(*) AS total FROM users2 ${where}`;
+                const [countResult]: any = await db.query(countQuery);
+                result.totalCount = countResult[0].total;
+            }
+
+            res.json(result);
         } catch (err) {
             console.error(err);
             res.status(500).json({ message: "error", err });
         }
     }
+
 
 
     static async userinfo(req: Request, res: Response) {
@@ -186,6 +161,21 @@ class UserController {
 
 
     }
+
+    static async deleteMultiple(req: Request, res: Response) {
+        const { ids } = req.body;
+        if (!ids || !Array.isArray(ids) || ids.length === 0) {
+            return res.status(400).json({ message: "No user IDs provided" });
+        }
+        try {
+            const placeholders = ids.map(() => "?").join(", ");
+            await db.query(`DELETE FROM users2 WHERE id IN (${placeholders})`, ids);
+            return res.json({ message: `${ids.length} Users Deleted` });
+        } catch (err) {
+            return res.status(500).json({ message: "Error Deleting Users", err });
+        }
+    }
+
 
 
     static async updateUser(req: Request, res: Response) {

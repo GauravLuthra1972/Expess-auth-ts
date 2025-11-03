@@ -11,8 +11,11 @@
   "dependencies": {
     "@mdi/font": "^7.4.47",
     "axios": "^1.12.2",
-    "devextreme": "^24.2.9",
+    "devextreme": "^24.2.11",
     "devextreme-vue": "^24.2.9",
+    "exceljs": "^4.4.0",
+    "file-saver": "^2.0.5",
+    "jspdf": "^3.0.3",
     "pinia": "^3.0.3",
     "pinia-plugin-persistedstate": "^4.5.0",
     "sass": "^1.93.2",
