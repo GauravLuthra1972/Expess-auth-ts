@@ -35,7 +35,7 @@ class UserController {
 
     }
 
-    static buildorder(sort: any[]): string {
+     static buildorder(sort: any[]): string {
         let order = "";
 
         const { selector, desc } = sort[0];
@@ -48,43 +48,60 @@ class UserController {
 
 
 
-    static async fetchUsers(req: Request, res: Response) {
+     async fetchUsers(req: Request, res: Response) {
         try {
-            const skip = parseInt(req.query.skip as string) || 0;
-            const take = parseInt(req.query.take as string) || 10;
-            const sort = req.query.sort ? JSON.parse(req.query.sort as string) : [];
-            const filter = req.query.filter ? JSON.parse(req.query.filter as string) : [];
+            const skip = req.query.skip ? parseInt(req.query.skip as string, 10):null;
+            const take = req.query.take ? parseInt(req.query.take as string, 10):null;
+            const sort = req.query.sort ? JSON.parse(req.query.sort as string) : null;
+            const filter = req.query.filter ? JSON.parse(req.query.filter as string) : null;
             const requireTotalCount = req.query.requireTotalCount
             console.log("require", requireTotalCount)
 
+            console.log(skip)
+            console.log(take)
 
-            let where = "";
-            if (filter && filter.length > 0) {
-                where = UserController.buildwhere(filter)
+            if (skip!=null && take!=null) {
+                let where = "";
+                if (filter && filter.length > 0) {
+                    where = UserController.buildwhere(filter)
+
+                }
+
+
+                let order = "";
+                if (sort && sort.length > 0) {
+                    order = UserController.buildorder(sort)
+
+                }
+
+
+
+                const query = `SELECT * FROM users2 ${where} ${order} LIMIT ${take} OFFSET ${skip}`;
+                console.log("query4444444",query)
+                const [rows]: any = await db.query(query);
+
+                const result: any = { data: rows };
+
+                if (requireTotalCount) {
+                    const countQuery = `SELECT COUNT(*) AS total FROM users2 ${where}`;
+                    const [countResult]: any = await db.query(countQuery);
+                    result.totalCount = countResult[0].total;
+                }
+
+                res.json(result);
+
+            }
+
+            else{
+                const [rows]: any = await db.query("Select * from users2");
+                res.json({message:"ALl users",rows});
+
+
 
             }
 
 
-            let order = "";
-            if (sort && sort.length > 0) {
-                order = UserController.buildorder(sort)
 
-            }
-
-
-
-            const query = `SELECT * FROM users2 ${where} ${order} LIMIT ${take} OFFSET ${skip}`;
-            const [rows]: any = await db.query(query);
-
-            const result: any = { data: rows };
-
-            if (requireTotalCount) {
-                const countQuery = `SELECT COUNT(*) AS total FROM users2 ${where}`;
-                const [countResult]: any = await db.query(countQuery);
-                result.totalCount = countResult[0].total;
-            }
-
-            res.json(result);
         } catch (err) {
             console.error(err);
             res.status(500).json({ message: "error", err });
@@ -93,7 +110,7 @@ class UserController {
 
 
 
-    static async userinfo(req: Request, res: Response) {
+     async userinfo(req: Request, res: Response) {
         const authheader = req.headers.authorization;
         if (!authheader) {
             return res.json({ message: "Authorization header missing" });
@@ -124,7 +141,7 @@ class UserController {
     }
 
 
-    static async deleteUser(req: Request, res: Response) {
+     async deleteUser(req: Request, res: Response) {
         const authHeader = req.headers.authorization;
         if (!authHeader) return res.json({ message: "Authorization header missing" });
 
@@ -147,7 +164,7 @@ class UserController {
         }
     }
 
-    static async deletebyId(req: Request, res: Response) {
+     async deletebyId(req: Request, res: Response) {
         const { id } = req.params
 
         try {
@@ -162,7 +179,7 @@ class UserController {
 
     }
 
-    static async deleteMultiple(req: Request, res: Response) {
+     async deleteMultiple(req: Request, res: Response) {
         const { ids } = req.body;
         if (!ids || !Array.isArray(ids) || ids.length === 0) {
             return res.status(400).json({ message: "No user IDs provided" });
@@ -178,7 +195,7 @@ class UserController {
 
 
 
-    static async updateUser(req: Request, res: Response) {
+     async updateUser(req: Request, res: Response) {
         const { id, name, username, email } = req.body;
 
         try {
@@ -200,7 +217,7 @@ class UserController {
     }
 
 
-    static async adminUpdateUser(req: Request, res: Response) {
+     async adminUpdateUser(req: Request, res: Response) {
         const { id, name, username, email, role } = req.body;
 
         try {
@@ -232,7 +249,7 @@ class UserController {
 
 
 
-    static async profileUpload(req: Request, res: Response) {
+     async profileUpload(req: Request, res: Response) {
         try {
             console.log(req.file);
 

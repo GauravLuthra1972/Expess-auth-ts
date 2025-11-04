@@ -15,7 +15,7 @@
       :ref="usersData.dataGridRef"
       :selection="{ mode: 'multiple', showCheckBoxesMode: 'always' }"
     >
-     <DxToolbar>
+     <!-- <DxToolbar>
   <DxItem
     name="exportButton"
     location="after"
@@ -42,7 +42,7 @@
       onClick: refreshTableData
     }"
   />
-</DxToolbar>
+</DxToolbar> -->
 
      
 
@@ -59,14 +59,16 @@
         <DxButton name="delete" />
       </DxColumn>
 
-      <template #profileTemplate="{ data }">
-        <div style="display:flex; justify-content:center;">
-          <img 
-            :src="data.profile_pic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'" 
-            style="width:50px; height:50px; border-radius:50%;" 
-          />
-        </div>
-      </template>
+   <template #profileTemplate="{ data }">
+  <div style="display:flex; justify-content:center; align-items:center; gap:8px;">
+    <img 
+      :src="data.data.profile_pic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'" 
+      style="width:50px; height:50px; border-radius:50%;" 
+    />
+
+  </div>
+</template>
+
 
 
       

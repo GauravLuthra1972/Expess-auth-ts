@@ -2,14 +2,12 @@ import { ref, computed } from "vue";
 import CustomStore from "devextreme/data/custom_store";
 import api from "../plugins/api";
 import Swal from 'sweetalert2'
-
 import ExcelJS from "exceljs";
-import { exportDataGrid } from "devextreme/excel_exporter";
 import { saveAs } from "file-saver";
-
-import DataGrid from "devextreme/ui/data_grid";
-
 const { Workbook } = ExcelJS;
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+
 
 
 const isNotEmpty = (value) => {
@@ -23,8 +21,8 @@ export default function dataSource(
   deleteURL = null,
   customRefName = null
 ) {
-const skipLoader = ref(true);
-const dataGridRef = ref(null);
+  const skipLoader = ref(true);
+  const dataGridRef = ref(null);
   const refKey = ref("dataGrid");
   const dateFormat = "MM/dd/yyyy";
 
@@ -54,12 +52,12 @@ const dataGridRef = ref(null);
       const dxKeys = ["skip", "take", "requireTotalCount", "requireGroupCount", "sort", "filter"];
       let queryParams = { ...params };
 
-     
+
       Object.keys(params).forEach((key) => {
         if (dxKeys.includes(key)) delete queryParams[key];
       });
 
-     
+
       dxKeys.forEach((key) => {
         if (key in loadOptions && isNotEmpty(loadOptions[key])) {
           queryParams[key] = JSON.stringify(loadOptions[key]);
@@ -85,10 +83,10 @@ const dataGridRef = ref(null);
     },
 
     update: async (key, values) => {
-        
-        console.log("updating")
-        console.log(key)
-       
+
+      console.log("updating")
+      console.log(key)
+
       if (!updateURL) throw new Error("Update URL not provided");
       try {
         const payload = { id: key, ...values };
@@ -101,7 +99,7 @@ const dataGridRef = ref(null);
     },
 
     remove: async (key) => {
-        console.log("deleting")
+      console.log("deleting")
       if (!deleteURL) throw new Error("Delete URL not provided");
       try {
         await api.delete(`${deleteURL}/${key}`);
@@ -113,56 +111,89 @@ const dataGridRef = ref(null);
     },
   });
 
-const onExporting = async (e) => {
-  const selectedData = e.component.getSelectedRowsData();
-
-  if (!selectedData.length) {
-    await Swal.fire({
-      icon: "info",
-      title: "No rows selected",
-      text: "Please select at least one row to export.",
-      confirmButtonText: "OK",
-    });
+  const onExporting = async (e) => {
     e.cancel = true;
-    return;
-  }
 
-  const workbook = new Workbook();
-  const worksheet = workbook.addWorksheet("Selected Rows");
-
-  const columns = Object.keys(selectedData[0]);
-  worksheet.addRow(columns);
-
-  selectedData.forEach((row) => {
-    worksheet.addRow(columns.map((col) => row[col]));
-  });
-
-  worksheet.eachRow((row) => {
-    row.eachCell((cell) => {
-      cell.font = { name: "Arial", size: 12 };
-      cell.alignment = { horizontal: "left" };
+    const result = await Swal.fire({
+      title: "Export Options",
+      text: "Choose what you want to export",
+      icon: "question",
+      showDenyButton: true,
+      confirmButtonText: "Export Selected",
+      denyButtonText: "Export All",
     });
-  });
 
-  try {
-    const buffer = await workbook.xlsx.writeBuffer();
-    saveAs(new Blob([buffer], { type: "application/octet-stream" }), "SelectedRows.xlsx");
+    let exportData = [];
 
-    Swal.fire({
-      icon: "success",
-      title: "Exported successfully",
-      timer: 1500,
-      showConfirmButton: false,
+    if (result.isConfirmed) {
+      const selectedData = e.component.getSelectedRowsData();
+      if (!selectedData.length) {
+        await Swal.fire({
+          icon: "info",
+          title: "No rows selected",
+          text: "Please select at least one row to export.",
+          confirmButtonText: "OK",
+        });
+        return;
+      }
+      exportData = selectedData;
+    } else if (result.isDenied) {
+      console.log("exporting all");
+      try {
+        const response = await api.get("/users",);
+        exportData = response.data.rows || [];
+        if (!exportData.length) {
+          await Swal.fire({
+            icon: "info",
+            title: "No users found",
+            text: "There are no users to export.",
+          });
+          return;
+        }
+      } catch (err) {
+        console.error(err);
+        Swal.fire({
+          icon: "error",
+          title: "Failed to fetch all users",
+          text: err.message || "",
+        });
+        return;
+      }
+    }
+
+    const workbook = new Workbook();
+    const worksheet = workbook.addWorksheet(result.isConfirmed ? "Selected Rows" : "All Users");
+
+    const columns = Object.keys(exportData[0]);
+    worksheet.addRow(columns);
+    exportData.forEach((row) => worksheet.addRow(columns.map((col) => row[col])));
+
+    worksheet.eachRow((row) => {
+      row.eachCell((cell) => {
+        cell.font = { name: "Arial", size: 12 };
+        cell.alignment = { horizontal: "left" };
+      });
     });
-  } catch (err) {
-    console.error(err);
-    Swal.fire({
-      icon: "error",
-      title: "Export failed",
-      text: err.message || "",
-    });
-  }
-};
+
+    try {
+      const buffer = await workbook.xlsx.writeBuffer();
+      const fileName = result.isConfirmed ? "SelectedRows.xlsx" : "AllUsers.xlsx";
+      saveAs(new Blob([buffer], { type: "application/octet-stream" }), fileName);
+      Swal.fire({
+        icon: "success",
+        title: "Exported successfully",
+        timer: 1500,
+        showConfirmButton: false,
+      });
+    } catch (err) {
+      console.error(err);
+      Swal.fire({
+        icon: "error",
+        title: "Export failed",
+        text: err.message || "",
+      });
+    }
+  };
 
 
   const refreshTable = (dataGridRef, changedOnly = false) => {
@@ -179,17 +210,12 @@ const onExporting = async (e) => {
     dataGrid.refresh(changedOnly);
   };
 
-  const getDataGridRefName = (ref_name) => {
-    return (dataGridRefName.value = "dataGrid_" + ref_name);
-  };
 
   const refName = computed(() => {
     return getDataGridRefName(refKey.value);
   });
 
-  const dxGrid = computed(() => {
-    return dataGridRefName ? dataGridRefName.value.instance : null;
-  });
+
 
   const isMobile = computed(() => {
     return window.innerWidth <= 768;
@@ -203,22 +229,9 @@ const onExporting = async (e) => {
     store,
     dateFormat,
     paginationOption,
-
-
-    
-
     refName,
-
-  
-
     refreshTable,
-    getDataGridRefName,
     onExporting,
-
-  
     isMobile,
-
-
-
   };
 }

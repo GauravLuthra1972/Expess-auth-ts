@@ -8,7 +8,7 @@ const saltRounds = 10
 class authController {
 
 
-    static async registerUser(req: Request, res: Response) {
+     async registerUser(req: Request, res: Response) {
         const { name, email, username, password } = req.body;
 
         if (!username || !password || !email || !name) {
@@ -58,7 +58,7 @@ class authController {
 
 
 
-    static async loginUser(req: Request, res: Response) {
+     async loginUser(req: Request, res: Response) {
         const { username, password } = req.body
 
         if (!username || !password) {
@@ -131,7 +131,7 @@ class authController {
    
 
 
-    static refreshToken(req: Request, res: Response) {
+     refreshToken(req: Request, res: Response) {
         const { refreshtoken } = req.body;
         if (!refreshtoken) {
             return res.json({ message: "Refresh token missing" });
