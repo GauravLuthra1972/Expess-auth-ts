@@ -6,7 +6,9 @@ import ExcelJS from "exceljs";
 import { saveAs } from "file-saver";
 const { Workbook } = ExcelJS;
 import jsPDF from "jspdf";
-import "jspdf-autotable";
+import autoTable from "jspdf-autotable";
+
+import { exportDataGrid } from "devextreme/excel_exporter";
 
 
 
@@ -110,10 +112,28 @@ export default function dataSource(
       }
     },
   });
+  //    const onExporting = (e) => {
+    
+  //   const workbook = new Workbook();
+  //   const worksheet = workbook.addWorksheet("Main sheet");
+  //   exportDataGrid({
+  //     component: e.component,
+  //     worksheet,
+  //     customizeCell: function (options) {
+  //       options.excelCell.font = { name: "Arial", size: 12 };
+  //       options.excelCell.alignment = { horizontal: "left" };
+  //     },
+  //   }).then(function () {
+  //     workbook.xlsx.writeBuffer().then(function (buffer) {
+  //       saveAs(
+  //         new Blob([buffer], { type: "application/octet-stream" }),
+  //         "DataGrid.xlsx",
+  //       );
+  //     });
+  //   });
+  // };
 
   const onExporting = async (e) => {
-    e.cancel = true;
-
     const result = await Swal.fire({
       title: "Export Options",
       text: "Choose what you want to export",
@@ -121,7 +141,11 @@ export default function dataSource(
       showDenyButton: true,
       confirmButtonText: "Export Selected",
       denyButtonText: "Export All",
+
     });
+
+    if (result.isDismissed) return;
+
 
     let exportData = [];
 
@@ -138,9 +162,8 @@ export default function dataSource(
       }
       exportData = selectedData;
     } else if (result.isDenied) {
-      console.log("exporting all");
       try {
-        const response = await api.get("/users",);
+        const response = await api.get("/users");
         exportData = response.data.rows || [];
         if (!exportData.length) {
           await Swal.fire({
@@ -161,38 +184,69 @@ export default function dataSource(
       }
     }
 
-    const workbook = new Workbook();
-    const worksheet = workbook.addWorksheet(result.isConfirmed ? "Selected Rows" : "All Users");
-
-    const columns = Object.keys(exportData[0]);
-    worksheet.addRow(columns);
-    exportData.forEach((row) => worksheet.addRow(columns.map((col) => row[col])));
-
-    worksheet.eachRow((row) => {
-      row.eachCell((cell) => {
-        cell.font = { name: "Arial", size: 12 };
-        cell.alignment = { horizontal: "left" };
-      });
+    const formatResult = await Swal.fire({
+      title: "Choose Export Format",
+      icon: "question",
+      showDenyButton: true,
+      confirmButtonText: "Export to PDF",
+      denyButtonText: "Export to Excel",
     });
+    if (formatResult.isDismissed) return;
 
-    try {
-      const buffer = await workbook.xlsx.writeBuffer();
-      const fileName = result.isConfirmed ? "SelectedRows.xlsx" : "AllUsers.xlsx";
-      saveAs(new Blob([buffer], { type: "application/octet-stream" }), fileName);
-      Swal.fire({
-        icon: "success",
-        title: "Exported successfully",
-        timer: 1500,
-        showConfirmButton: false,
+    if (formatResult.isConfirmed) {
+      const doc = new jsPDF();
+      const columns = Object.keys(exportData[0]);
+      const rows = exportData.map(row => columns.map(col => row[col]));
+
+      autoTable(doc, {
+        head: [columns],
+        body: rows,
+        styles: { font: "helvetica", fontSize: 5, halign: "left" },
       });
-    } catch (err) {
-      console.error(err);
-      Swal.fire({
-        icon: "error",
-        title: "Export failed",
-        text: err.message || "",
+
+      const fileName = result.isConfirmed ? "SelectedRows.pdf" : "AllUsers.pdf";
+      doc.save(fileName);
+    } else if (formatResult.isDenied) {
+      const workbook = new ExcelJS.Workbook();
+      const worksheet = workbook.addWorksheet("Main Sheet");
+
+      const columns = Object.keys(exportData[0]);
+      worksheet.addRow(columns);
+      exportData.forEach((row) =>
+        worksheet.addRow(columns.map((col) => row[col]))
+      );
+
+      worksheet.eachRow((row) => {
+        row.eachCell((cell) => {
+          cell.font = { name: "Arial", size: 12 };
+          cell.alignment = { horizontal: "left" };
+        });
       });
+
+      try {
+        const buffer = await workbook.xlsx.writeBuffer();
+        const fileName = result.isConfirmed ? "SelectedRows.xlsx" : "AllUsers.xlsx";
+        saveAs(
+          new Blob([buffer], { type: "application/octet-stream" }),
+          fileName
+        );
+      } catch (err) {
+        console.error(err);
+        Swal.fire({
+          icon: "error",
+          title: "Export failed",
+          text: err.message || "",
+        });
+        return;
+      }
     }
+
+    Swal.fire({
+      icon: "success",
+      title: "Exported successfully",
+      timer: 1500,
+      showConfirmButton: false,
+    });
   };
 
 

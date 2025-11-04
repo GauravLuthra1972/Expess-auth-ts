@@ -15,7 +15,7 @@
       :ref="usersData.dataGridRef"
       :selection="{ mode: 'multiple', showCheckBoxesMode: 'always' }"
     >
-     <!-- <DxToolbar>
+     <DxToolbar>
   <DxItem
     name="exportButton"
     location="after"
@@ -42,7 +42,7 @@
       onClick: refreshTableData
     }"
   />
-</DxToolbar> -->
+</DxToolbar>
 
      
 
