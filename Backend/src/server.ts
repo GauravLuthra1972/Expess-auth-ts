@@ -1,3 +1,4 @@
+import "reflect-metadata";
 import express from 'express';
 import userRoutes from './routes/userRoutes';
 import authRoutes from './routes/authRoutes';

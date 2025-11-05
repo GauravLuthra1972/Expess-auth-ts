@@ -5,7 +5,18 @@
       :filter-row="{ visible: true, showOperationChooser: true }" :export="{ enabled: true, fileName: 'DataGrid' }"
       @exporting="usersData.onExporting" :ref="usersData.dataGridRef"
       :selection="{ mode: 'multiple', showCheckBoxesMode: 'always' }"
-        :master-detail="{ enabled: true, template: detailTemplate }">
+      :master-detail="{ enabled: true, template: detailTemplate }" 
+
+      @editing-start="openEditModal"
+
+      :editing="{
+        mode: 'row',  
+       
+        allowUpdating: true,
+        allowDeleting: true,
+        allowAdding: true,
+        useIcons: true
+      }">
 
 
       <DxToolbar>
@@ -32,24 +43,20 @@
       <DxColumn data-field="email" caption="Email" />
       <DxColumn data-field="created_at" caption="Joined Date" width="250" :calculate-cell-value="formatDate" />
       <DxColumn data-field="role" caption="Role" width="100" />
-      <DxColumn caption="Actions" width="120" cell-template="actionTemplate" />
+
 
 
       <template #detailTemplate="{ data: user }">
-      
-    
-          <DxDataGrid
-            :data-source="tasksData[user.id]"
-            :show-borders="true"
-            :column-auto-width="true"
-          >
-            <DxColumn data-field="subject" caption="Task Subject" />
-            <DxColumn data-field="due_date" caption="Due Date" />
-            <DxColumn data-field="status" caption="Status" />
-            <DxColumn data-field="priority" caption="Priority" />
-            <DxColumn data-field="completion" caption="Completion (%)" />
-          </DxDataGrid>
-    
+
+
+        <DxDataGrid :data-source="tasksData[user.id]" :show-borders="true" :column-auto-width="true">
+          <DxColumn data-field="subject" caption="Task Subject" />
+          <DxColumn data-field="due_date" caption="Due Date" />
+          <DxColumn data-field="status" caption="Status" />
+          <DxColumn data-field="priority" caption="Priority" />
+          <DxColumn data-field="completion" caption="Completion (%)" />
+        </DxDataGrid>
+
       </template>
 
 
@@ -62,17 +69,7 @@
         </div>
       </template>
 
-      <template #actionTemplate="{ data }">
-        <div style="display:flex; gap:8px; justify-content:center;">
-          <v-icon small color="primary" style="cursor:pointer;" @click="() => openEditModal(data)">
-            mdi-pencil
-          </v-icon>
 
-          <v-icon small color="red" style="cursor:pointer;" @click="() => openDeleteModal(data)">
-            mdi-trash-can
-          </v-icon>
-        </div>
-      </template>
 
     </DxDataGrid>
 
@@ -169,7 +166,7 @@ const tasksData = ref({
 
 
 const usersData = dataSource("/users", {}, "/users/adminupdate", "/users/deletebyid");
-const {formatDate}=dxExtra()
+const { formatDate } = dxExtra()
 
 const refreshTableData = () => {
   console.log("refreshing")
@@ -231,10 +228,15 @@ const showEditModal = ref(false)
 const selectedUser = ref({});
 
 
-function openEditModal(rowData) {
-  const data = rowData.data
+
+
+function openEditModal(e) {
+  console.log(e.data)
+
+  const data = e.data
   selectedUser.value = { ...data };
   showEditModal.value = true;
+  e.cancel=true
 }
 
 async function saveUser() {
