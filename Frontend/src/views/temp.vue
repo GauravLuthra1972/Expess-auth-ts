@@ -1,194 +1,249 @@
 <template>
   <v-container fluid class="pa-0 ma-0">
-    <DxDataGrid  :data-source="{ store: users }" :show-borders="true" :column-auto-width="true"
-      :row-alternation-enabled="true"  :paging="{ pageSize: pageSize }"
-      :filter-row="{
-        visible: true,
-       
-        showOperationChooser: true
-      }" :pager="{
-    showPageSizeSelector: true,
-    allowedPageSizes: [5, 10, 20],
-    showInfo: true,
-    visible: true
-  }" @option-changed="onOptionChanged">
+    <DxDataGrid :data-source="usersData.store" :remote-operations="true" :show-borders="true" :column-auto-width="true"
+      :row-alternation-enabled="true" :paging="{ pageSize: 10 }" :pager="usersData.paginationOption"
+      :filter-row="{ visible: true, showOperationChooser: true }" :export="{ enabled: true, fileName: 'DataGrid' }"
+      @exporting="usersData.onExporting" :ref="usersData.dataGridRef"
+      :selection="{ mode: 'multiple', showCheckBoxesMode: 'always' }">
+      <DxToolbar>
+        <DxItem name="exportButton" location="after" />
+
+        <DxItem location="after" widget="dxButton" :options="{
+          icon: 'trash',
+          text: 'Delete Selected',
+          type: 'danger',
+          onClick: deleteAllUsers
+        }" />
+
+        <DxItem location="before" widget="dxButton" :options="{
+          icon: 'refresh',
+          text: 'Refresh',
+          type: 'default',
+          onClick: refreshTableData
+        }" />
+      </DxToolbar>
+
+
 
 
       <DxColumn data-field="profile_pic" caption="Profile" cell-template="profileTemplate" width="100" />
       <DxColumn data-field="name" caption="Name" />
       <DxColumn data-field="username" caption="Username" />
       <DxColumn data-field="email" caption="Email" />
-      <DxColumn data-field="created_at" caption="Joined Date" width="250" />
+      <DxColumn data-field="created_at" caption="Joined Date" width="250" :calculate-cell-value="formatDate" />
       <DxColumn data-field="role" caption="Role" width="100" />
-      <DxColumn caption="Actions" cell-template="actionsTemplate" width="200" />
+
+      <DxColumn caption="Actions" width="120" cell-template="actionTemplate" />
+
 
       <template #profileTemplate="{ data }">
-        <div style="display:flex;justify-content:center;">
-          <img :src="data.data.profile_pic || defaultprofile" style="width:50px;height:50px;border-radius:50%;" />
+        <div style="display:flex; justify-content:center; align-items:center; gap:8px;">
+          <img :src="data.data.profile_pic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'"
+            style="width:50px; height:50px; border-radius:50%;" />
+
         </div>
       </template>
 
-      <template #actionsTemplate="{ data }">
-        <div class="d-flex ga-3">
-          <v-btn color="primary" @click="openedit(data.data)">Edit</v-btn>
-          <v-btn color="red-darken-3" @click="deleteUser(data.data.id)">Delete</v-btn>
-        </div>
-      </template>
+      <template #actionTemplate="{ data }">
+  <div style="display:flex; gap:8px; justify-content:center;">
+
+    <v-icon
+      small
+      color="primary"
+      style="cursor:pointer;"
+      @click="() => openEditModal(data)"
+    >
+      mdi-pencil
+    </v-icon>
+
+
+    <v-icon
+      small
+      color="red"
+      style="cursor:pointer;"
+      @click="() => openDeleteModal(data)"
+    >
+      mdi-trash-can
+    </v-icon>
+  </div>
+</template>
+
+
+
+
+
+
     </DxDataGrid>
 
-    <div class="d-flex justify-center align-center pa-0 ma-0 ">
-      <v-btn :disabled="currentPage <= 1" @click="goToPreviousPage" color="primary">Previous</v-btn>
-      <v-btn :disabled="currentPage >= totalPages" @click="goToNextPage" color="primary" class="ml-2">Next</v-btn>
-      <span class="ml-4">Page {{ currentPage }} of {{ totalPages }}</span>
-    </div>
-
-    <v-dialog v-model="editDialog" max-width="500">
+    <v-dialog v-model="showEditModal" max-width="500px">
       <v-card>
         <v-card-title>Edit User</v-card-title>
         <v-card-text>
-          <v-text-field label="Name" v-model="selectedUser.name" />
-          <v-text-field label="Username" v-model="selectedUser.username" />
-          <v-text-field label="Email" v-model="selectedUser.email" />
-          <v-select v-model="selectedUser.role" :items="roles" dense outlined label="role" />
+          <v-text-field v-model="selectedUser.name" label="Name" />
+          <v-text-field v-model="selectedUser.username" label="Username" />
+          <v-text-field v-model="selectedUser.email" label="Email" />
+          <v-select v-model="selectedUser.role" :items="['Admin', 'User', 'Moderator', 'Guest']" label="Role" />
         </v-card-text>
         <v-card-actions>
-          <v-spacer></v-spacer>
-          <v-btn text @click="editDialog = false">Cancel</v-btn>
-          <v-btn color="primary" @click="saveEditedUser">Save</v-btn>
+          <v-btn text @click="showEditModal = false">Cancel</v-btn>
+          <v-btn color="primary" @click="saveUser">Save</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
+
+
   </v-container>
 </template>
 
-<script>
-import DxDataGrid, { DxColumn } from "devextreme-vue/data-grid";
+<script setup>
 import Swal from "sweetalert2";
-import { useUserStore } from "../stores/userStore";
-import { mapState } from "pinia";
+import { ref } from "vue"
 
-export default {
-  components: { DxDataGrid, DxColumn },
-  data() {
-    return {
-      users: [],
-      pageSize: 10,
-      currentPage: 1,
-      totalUsers: 0,
-      totalPages: 0,
-      editDialog: false,
-      defaultprofile: "https://cdn-icons-png.flaticon.com/512/149/149071.png",
-      selectedUser: { id: null, name: "", username: "", email: "", role: "" },
-      roles: ["user", "admin", "moderator", "editor", "guest", "superadmin"]
-    };
-  },
-  mounted() {
-    this.fetchUsers(this.currentPage, this.pageSize);
-  },
-  computed: {
-    ...mapState(() => useUserStore(), ['accessToken'])
-  },
-  methods: {
-    formatDate(dateStr) {
-      if (!dateStr) return "N/A";
-      const options = { year: "numeric", month: "long", day: "numeric" };
-      return new Date(dateStr).toLocaleDateString(undefined, options);
-    },
-    async fetchUsers(page = 1, pageSize = this.pageSize) {
-      try {
-        const { data } = await this.$api.get('/users', { params: { pageNo: page, count: pageSize } });
-        console.log(data)
-        this.users = data.data.map(user => ({
-          ...user,
-          created_at: this.formatDate(user.created_at),
-          profile_pic: user.profile_pic || this.defaultprofile
-        }));
-        this.currentPage = data.currpage;
-        this.totalPages = data.totalPages;
-        this.totalUsers = data.totalUsers;
-      } catch (err) {
-        console.error(err);
-      }
-    },
-    async deleteUser(id) {
-      const result = await Swal.fire({
-        title: "Are you sure?",
-        text: "You won't be able to revert this!",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#d33",
-        cancelButtonColor: "#3085d6",
-        confirmButtonText: "Yes, delete it!",
+import api from "../plugins/api";
+import DxDataGrid, { DxColumn, DxToolbar, DxItem, DxButton } from "devextreme-vue/data-grid";
+import dataSource from "../composables/dataSource";
+
+const formatDate = (rowData) => {
+  if (!rowData.created_at) return "";
+  const date = new Date(rowData.created_at);
+  return date.toLocaleDateString("en-In");
+};
+
+const usersData = dataSource("/users", {}, "/users/adminupdate", "/users/deletebyid");
+
+const refreshTableData = () => {
+  console.log("refreshing")
+
+  usersData.refreshTable(usersData.dataGridRef);
+};
+
+
+const deleteAllUsers = async () => {
+  const grid = usersData.dataGridRef.value.instance;
+  const selectedRows = grid.getSelectedRowsData();
+
+  if (selectedRows.length === 0) {
+    Swal.fire({
+      icon: "info",
+      title: "No users selected!",
+      showConfirmButton: true
+    });
+    return;
+  }
+
+  const result = await Swal.fire({
+    title: `Are you sure you want to delete ${selectedRows.length} user(s)?`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#3085d6",
+    confirmButtonText: "Yes, delete them!",
+    cancelButtonText: "Cancel"
+  });
+
+  if (result.isConfirmed) {
+    try {
+      const ids = selectedRows.map(user => user.id);
+      await api.delete("/users/delete-multiple", { data: { ids } });
+
+      grid.refresh();
+
+      Swal.fire({
+        icon: "success",
+        title: `${ids.length} users deleted successfully`,
+        timer: 2000,
+        showConfirmButton: false
       });
-      if (result.isConfirmed) {
-        try {
-          await this.$api.delete(`/users/deletebyid/${id}`);
-          this.users = this.users.filter(user => user.id !== id);
-          Swal.fire({ title: "Deleted!", text: "User has been deleted.", icon: "success", timer: 1500, showConfirmButton: false });
-        } catch {
-          Swal.fire({ title: "Error!", text: "Failed to delete user.", icon: "error" });
-        }
-      }
-    },
-    onOptionChanged(e) {
-      if (e.fullName === "paging.pageSize") {
-        this.pageSize = e.value;
-        this.fetchUsers(this.currentPage, this.pageSize);
-      }
-    },
-    async saveEditedUser() {
-      this.editDialog = false;
-      const result = await Swal.fire({
-        title: "Are you sure?",
-        text: "Do you want to save changes to this user?",
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonText: "Yes, save it!",
-        cancelButtonText: "Cancel",
+    } catch (error) {
+      console.error(error);
+      Swal.fire({
+        icon: "error",
+        title: "Failed to delete users",
+        text: error.message || "",
       });
-      if (result.isConfirmed) {
-        try {
-          const { id, name, username, email, role } = this.selectedUser;
-          await this.$api.put(`/users/adminupdate`, { id, name, username, email, role });
-          const index = this.users.findIndex(u => u.id === id);
-          if (index !== -1) {
-            this.users[index].name = name;
-            this.users[index].username = username;
-            this.users[index].email = email;
-            this.users[index].role = role;
-          }
-          this.editDialog = false;
-          Swal.fire("Success", "User updated successfully", "success");
-        } catch {
-          Swal.fire("Error", "Failed to update user", "error");
-        }
-      } else {
-        this.editDialog = true;
-      }
-    },
-    openedit(data) {
-      this.selectedUser = { ...data };
-      this.editDialog = true;
-    },
-    async goToNextPage() {
-      if (this.currentPage < this.totalPages) {
-        this.currentPage++;
-        await this.fetchUsers(this.currentPage, this.pageSize);
-      }
-    },
-    async goToPreviousPage() {
-      if (this.currentPage > 1) {
-        this.currentPage--;
-        await this.fetchUsers(this.currentPage, this.pageSize);
-      }
     }
   }
 };
-</script>
 
-<style scoped>
-.dx-datagrid {
-  border-radius: 10px;
-  overflow: hidden;
+
+
+const showEditModal = ref(false)
+const selectedUser = ref({});
+
+
+function openEditModal(rowData) {
+  const data=rowData.data
+  selectedUser.value = { ...data};
+  showEditModal.value = true;
 }
-</style>
+
+async function saveUser() {
+  try {
+    await api.put("/users/adminupdate", {
+      id: selectedUser.value.id,
+      name: selectedUser.value.name,
+      username: selectedUser.value.username,
+      email: selectedUser.value.email,
+      role: selectedUser.value.role
+    });
+
+    Swal.fire({
+      icon: "success",
+      title: "User updated successfully",
+      timer: 2000,
+      showConfirmButton: false
+    });
+
+    showEditModal.value = false;
+
+    usersData.refreshTable(usersData.dataGridRef);
+  } catch (error) {
+    console.error(error);
+    Swal.fire({
+      icon: "error",
+      title: "Failed to update user",
+      text: error.response?.data?.message || error.message || "",
+    });
+  }
+}
+
+
+async function openDeleteModal(rowData) {
+  const user = rowData.data;
+
+  const result = await Swal.fire({
+    title: `Are you sure you want to delete ${user.name}?`,
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#d33",
+    cancelButtonColor: "#3085d6",
+    confirmButtonText: "Yes, delete!",
+    cancelButtonText: "Cancel"
+  });
+
+  if (result.isConfirmed) {
+    try {
+      await api.delete(`/users/deletebyid/${user.id}`);
+
+      Swal.fire({
+        icon: "success",
+        title: "User deleted successfully",
+        timer: 2000,
+        showConfirmButton: false
+      });
+
+      usersData.refreshTable(usersData.dataGridRef);
+    } catch (error) {
+      console.error(error);
+      Swal.fire({
+        icon: "error",
+        title: "Failed to delete user",
+        text: error.response?.data?.message || error.message || "",
+      });
+    }
+  }
+}
+
+
+
+</script>

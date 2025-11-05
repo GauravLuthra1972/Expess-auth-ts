@@ -9,52 +9,64 @@ class authController {
 
 
      async registerUser(req: Request, res: Response) {
-        const { name, email, username, password } = req.body;
+        console.log("updating")
+    const { name, email, username, password, role } = req.body;
+    console.log("role",role)
 
-        if (!username || !password || !email || !name) {
-            return res.json({ message: "All fields are required" });
+    if (!username || !password || !email || !name) {
+        return res.json({ message: "All fields are required" });
+    }
+
+    try {
+        const [existing]: any = await db.query(
+            'SELECT * FROM users2 WHERE username = ?',
+            [username]
+        );
+
+        if (existing.length > 0) {
+            return res.json({ message: "User already Exists" });
         }
 
-        try {
-            const [existing]: any = await db.query(
-                'SELECT * FROM users2 WHERE username = ?',
-                [username]
+        const hashpass = bcrypt.hashSync(password, saltRounds);
+
+        let result: any;
+        if (role && role !== "") {
+            [result] = await db.query(
+                'INSERT INTO users2 (name, email, username, password, role) VALUES (?, ?, ?, ?, ?)',
+                [name, email, username, hashpass, role]
             );
-
-            if (existing.length > 0) {
-                return res.json({ message: "User already Exists" });
-            }
-
-            const hashpass = bcrypt.hashSync(password, saltRounds);
-
-            const [result]: any = await db.query(
+        } else {
+            [result] = await db.query(
                 'INSERT INTO users2 (name, email, username, password) VALUES (?, ?, ?, ?)',
                 [name, email, username, hashpass]
             );
-
-            const newUserId = result.insertId;
-
-            const secret: string | undefined = process.env.SECRET_KEY;
-            if (!secret) return res.json({ message: "Secret is undefined" });
-
-            const accesstoken = jwt.sign(
-                { id: newUserId, username, email, name },
-                secret,
-                { expiresIn: '1h' }
-            );
-
-            const refreshtoken = jwt.sign(
-                { id: newUserId, username, email, name },
-                secret,
-                { expiresIn: '7h' }
-            );
-
-            res.json({ message: "User Registered", accesstoken, refreshtoken });
-        } catch (error: any) {
-            console.error(error);
-            res.json({ message: "Database error" });
         }
+
+        console.log(result)
+
+        const newUserId = result.insertId;
+
+        const secret: string | undefined = process.env.SECRET_KEY;
+        if (!secret) return res.json({ message: "Secret is undefined" });
+
+        const accesstoken = jwt.sign(
+            { id: newUserId, username, email, name },
+            secret,
+            { expiresIn: '1h' }
+        );
+
+        const refreshtoken = jwt.sign(
+            { id: newUserId, username, email, name },
+            secret,
+            { expiresIn: '7h' }
+        );
+
+        res.json({ message: "User Registered", accesstoken, refreshtoken });
+    } catch (error: any) {
+        console.error(error);
+        res.json({ message: "Database error" });
     }
+}
 
 
 

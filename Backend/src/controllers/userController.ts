@@ -276,6 +276,15 @@ class UserController {
 
 
 
+    async adminadduser(req: Request, res: Response) {
+
+        
+
+
+    }
+
+
+
 
 
 

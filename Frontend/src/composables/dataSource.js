@@ -24,6 +24,7 @@ export default function dataSource(
   customRefName = null
 ) {
   const skipLoader = ref(true);
+  
   const dataGridRef = ref(null);
   const refKey = ref("dataGrid");
   const dateFormat = "MM/dd/yyyy";
@@ -83,6 +84,47 @@ export default function dataSource(
         throw new Error("Data Loading Error");
       }
     },
+
+   insert: async (values) => {
+    console.log("called")
+    if (!values.name || !values.username || !values.email || !values.password) {
+      Swal.fire({
+        icon: "warning",
+        title: "All fields are required",
+        showConfirmButton: true
+      });
+      throw new Error("Validation failed");
+    }
+
+
+    try {
+      const response = await api.post("/auth/register", {
+        name: values.name,
+        username: values.username,
+        email: values.email,
+        password: values.password,
+        role: values.role
+      });
+
+    
+      Swal.fire({
+        icon: "success",
+        title: "User added successfully",
+        timer: 2000,
+        showConfirmButton: false
+      });
+
+      return response.data;
+    } catch (error) {
+      console.error(error);
+      Swal.fire({
+        icon: "error",
+        title: "Failed to add user",
+        text: error.response?.data?.message || error.message || "",
+      });
+      throw error;
+    }
+  },
 
     update: async (key, values) => {
 
