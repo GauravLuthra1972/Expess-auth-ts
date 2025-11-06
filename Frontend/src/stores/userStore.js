@@ -26,7 +26,8 @@ export const useUserStore = defineStore('user', {
     async fetchUser() {
       try {
         const { data } = await api.get('/users/userinfo')
-        this.user = data.info[0]
+        console.log(data.info)
+        this.user = data.info
         console.log(this.user)
 
       } catch (error) {
@@ -65,9 +66,11 @@ export const useUserStore = defineStore('user', {
     async register(username, password, name, email) {
       try {
         const { data } = await api.post('/auth/register', { username, password, name, email })
+        console.log(data)
         if (data.accesstoken && data.refreshtoken) {
           this.accessToken = data.accesstoken
           this.refreshToken = data.refreshtoken
+          alert('User Registered')
           await this.fetchUser()
           alert('User Registered')
           router.push('/posts')
@@ -81,6 +84,7 @@ export const useUserStore = defineStore('user', {
     },
 
     async updateUser(updates) {
+      
       try {
         await api.put('/users/update', updates)
         this.user = { ...this.user, ...updates }

@@ -8,6 +8,7 @@
       :master-detail="{ enabled: true, template: detailTemplate }" 
 
       @editing-start="openEditModal"
+       @row-removing="openDeleteModal"
 
       :editing="{
         mode: 'row',  
@@ -15,7 +16,8 @@
         allowUpdating: true,
         allowDeleting: true,
         allowAdding: true,
-        useIcons: true
+        useIcons: true,
+         confirmDelete: false
       }">
 
 
@@ -46,19 +48,8 @@
 
 
 
-      <template #detailTemplate="{ data: user }">
-
-
-        <DxDataGrid :data-source="tasksData[user.id]" :show-borders="true" :column-auto-width="true">
-          <DxColumn data-field="subject" caption="Task Subject" />
-          <DxColumn data-field="due_date" caption="Due Date" />
-          <DxColumn data-field="status" caption="Status" />
-          <DxColumn data-field="priority" caption="Priority" />
-          <DxColumn data-field="completion" caption="Completion (%)" />
-        </DxDataGrid>
-
-      </template>
-
+  
+      
 
 
       <template #profileTemplate="{ data }">
@@ -122,8 +113,9 @@ import DxDataGrid, { DxColumn, DxToolbar, DxItem, DxButton } from "devextreme-vu
 import dataSource from "../composables/dataSource";
 import dxExtra from "../composables/dxExtra";
 
+
 const tasksData = ref({
-  78: [ // Tasks for user with id: 78
+  78: [
     {
       id: 1,
       user_id: 78,
@@ -270,8 +262,12 @@ async function saveUser() {
 }
 
 
-async function openDeleteModal(rowData) {
-  const user = rowData.data;
+
+
+async function openDeleteModal(e) {
+  e.cancel=true
+  console.log(e)
+  const user = e.data;
   const result = await Swal.fire({
     title: `Are you sure you want to delete ${user.name}?`,
     icon: "warning",

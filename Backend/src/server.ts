@@ -7,6 +7,7 @@ import taskRoutes from './routes/taskRoutes'
 import dotenv from 'dotenv';
 import path from 'path';
 import cors from 'cors'
+import {AppDataSource} from "./config/data-source";
 
 
 
@@ -17,7 +18,7 @@ const port = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(cors({
-  origin: 'http://localhost:5173', // your frontend origin
+  origin: 'http://localhost:5173', 
   credentials: true
 }));
 
@@ -31,6 +32,14 @@ app.get("/", (req, res) => {
     res.send("Server is running");
 });
 
-app.listen(port, () => {
-    console.log("Server started on " + port);
-});
+AppDataSource.initialize()
+    .then(() => {
+        console.log("✅ Database connected successfully");
+
+        app.listen(port, () => {
+            console.log(`Server running on ${port}`);
+        });
+    })
+    .catch((err) => {
+        console.error("❌ Database connection failed", err);
+    });

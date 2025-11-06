@@ -1,149 +1,114 @@
 import { Request, Response } from "express";
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
-import db from "../config/db";
+import { AppDataSource } from "../config/data-source";
+import { User } from "../entities/User";
 
 const saltRounds = 10
 
 class authController {
 
 
-     async registerUser(req: Request, res: Response) {
-        console.log("updating")
-    const { name, email, username, password, role } = req.body;
-    console.log("role",role)
+    async registerUser(req: Request, res: Response) {
 
-    if (!username || !password || !email || !name) {
-        return res.json({ message: "All fields are required" });
-    }
+        console.log("register running")
+        const { name, email, username, password, role } = req.body;
 
-    try {
-        const [existing]: any = await db.query(
-            'SELECT * FROM users2 WHERE username = ?',
-            [username]
-        );
-
-        if (existing.length > 0) {
-            return res.json({ message: "User already Exists" });
+        if (!username || !password || !email || !name) {
+            return res.json({ message: "All fields are required" });
         }
 
-        const hashpass = bcrypt.hashSync(password, saltRounds);
+        try {
+            const userRepo = AppDataSource.getRepository(User);
+            const existingUser = await userRepo.findOne({ where: { username } });
 
-        let result: any;
-        if (role && role !== "") {
-            [result] = await db.query(
-                'INSERT INTO users2 (name, email, username, password, role) VALUES (?, ?, ?, ?, ?)',
-                [name, email, username, hashpass, role]
+            if (existingUser) {
+                return res.json({ message: "User already Exists" });
+            }
+
+            const hashedPassword = bcrypt.hashSync(password, saltRounds);
+        
+            const newUser = userRepo.create({
+                name,
+                email,
+                username,
+                password: hashedPassword,
+                role: role || "user",
+            });
+
+            const savedUser = await userRepo.save(newUser);
+            console.log(savedUser)
+
+            const secret: string | undefined = process.env.SECRET_KEY;
+            if (!secret) return res.json({ message: "Secret is undefined" });
+
+            const accesstoken = jwt.sign(
+                { id: savedUser.id, username, email, name },
+                secret,
+                { expiresIn: '10s' }
             );
-        } else {
-            [result] = await db.query(
-                'INSERT INTO users2 (name, email, username, password) VALUES (?, ?, ?, ?)',
-                [name, email, username, hashpass]
+
+            const refreshtoken = jwt.sign(
+                { id: savedUser.id, username, email, name },
+                secret,
+                { expiresIn: '7h' }
             );
+
+            return res.json({ message: "User Registered", accesstoken, refreshtoken });
+        } catch (error: any) {
+            console.error(error);
+            return res.json({ message: "Database error" });
         }
-
-        console.log(result)
-
-        const newUserId = result.insertId;
-
-        const secret: string | undefined = process.env.SECRET_KEY;
-        if (!secret) return res.json({ message: "Secret is undefined" });
-
-        const accesstoken = jwt.sign(
-            { id: newUserId, username, email, name },
-            secret,
-            { expiresIn: '1h' }
-        );
-
-        const refreshtoken = jwt.sign(
-            { id: newUserId, username, email, name },
-            secret,
-            { expiresIn: '7h' }
-        );
-
-        res.json({ message: "User Registered", accesstoken, refreshtoken });
-    } catch (error: any) {
-        console.error(error);
-        res.json({ message: "Database error" });
     }
-}
 
 
 
-     async loginUser(req: Request, res: Response) {
-        const { username, password } = req.body
+
+    async loginUser(req: Request, res: Response) {
+        const { username, password } = req.body;
 
         if (!username || !password) {
-            return res.json({ message: "Username and Password are required" })
+            return res.json({ message: "Username and Password are required" });
         }
 
-        const [existing]: any = await db.query('Select * from users2 where username=?', [username])
+        try {
+            const userRepo = AppDataSource.getRepository(User);
+            const user = await userRepo.findOne({ where: { username } });
 
-        if (existing.length > 0) {
-            const user = existing[0]
+            if (!user) return res.json({ message: "User is not registered" });
 
+            const isValid = bcrypt.compareSync(password, user.password);
+            if (!isValid) return res.json({ message: "Wrong Password" });
 
-            const flag = bcrypt.compareSync(password, user.password)
+            const secret = process.env.SECRET_KEY!;
+            const accesstoken = jwt.sign(
+                { id: user.id, username: user.username, email: user.email, name: user.name, role: user.role },
+                secret,
+                { expiresIn: '10s' }
+            );
 
-            if (flag) {
-                const secret: string | undefined = process.env.SECRET_KEY
-                console.log("secret" + secret)
+            const refreshtoken = jwt.sign(
+                { id: user.id, username: user.username, email: user.email, name: user.name },
+                secret,
+                { expiresIn: '7h' }
+            );
 
-                if (!secret) {
-                    return res.json({ message: "Secret is undefimed" })
-                }
+            res.json({ message: "Logged in Successfully", accesstoken, refreshtoken });
 
-                try {
-                    const accesstoken = jwt.sign(
-                        {
-                            id: user.id,
-                            username: user.username,
-                            email: user.email,
-                            name: user.name,
-                            role:user.role
-                        },
-                        secret,
-                        { expiresIn: '1h' }
-                    )
-
-                    const refreshtoken = jwt.sign(
-                        {
-                            id: user.id,
-                            username: user.username,
-                            email: user.email,
-                            name: user.name
-                        },
-                        secret,
-                        { expiresIn: '7h' }
-                    )
-
-                    res.json({ message: "Logged in Successfully", accesstoken, refreshtoken });
-
-                }
-
-                catch (err) {
-                    res.json({ message: "error", err });
-
-                }
-
-
-            }
-            else {
-                res.json({ message: "Wrong Password" });
-            }
-
-        } else {
-            res.json({ message: "User is not registered" });
+        } catch (error) {
+            console.error(error);
+            res.json({ message: "Database error" });
         }
     }
 
 
-    
-
-   
 
 
-     refreshToken(req: Request, res: Response) {
+
+
+
+
+    refreshToken(req: Request, res: Response) {
         const { refreshtoken } = req.body;
         if (!refreshtoken) {
             return res.json({ message: "Refresh token missing" });
