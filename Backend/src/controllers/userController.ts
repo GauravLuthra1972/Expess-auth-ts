@@ -151,6 +151,9 @@ class UserController {
         try {
             const skip = parseInt(req.query.skip as string)
             const take = parseInt(req.query.take as string)
+
+            console.log("Skip11",skip)
+            console.log("take11",take)
             const requireTotalCount = req.query.requireTotalCount === "true";
 
             let where = "";
@@ -181,7 +184,7 @@ class UserController {
 
             if (where!="") query.where(where);
             if (order!="") query.orderBy(order);
-
+    
             const users = await query.getMany();
 
             if (requireTotalCount) {

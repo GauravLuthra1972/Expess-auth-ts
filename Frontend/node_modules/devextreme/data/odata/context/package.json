@@ -1,5 +1,7 @@
 {
-  "sideEffects": false,
+  "sideEffects": [
+    "../../../esm/data/odata/query_adapter.js"
+  ],
   "main": "../../../cjs/data/odata/context.js",
   "module": "../../../esm/data/odata/context.js",
   "typings": "../context.d.ts"

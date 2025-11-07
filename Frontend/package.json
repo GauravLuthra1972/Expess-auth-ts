@@ -1,3 +1,5 @@
+
+
 {
   "name": "eval-prac",
   "private": true,
@@ -11,8 +13,9 @@
   "dependencies": {
     "@mdi/font": "^7.4.47",
     "axios": "^1.12.2",
-    "devextreme": "^24.2.11",
-    "devextreme-vue": "^24.2.9",
+    "devextreme": "^23.2.8",
+    "devextreme-vue": "^23.2.8",
+    
     "exceljs": "^4.4.0",
     "file-saver": "^2.0.5",
     "jspdf": "^3.0.3",

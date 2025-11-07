@@ -4,12 +4,14 @@ import Users from "../views/Users.vue";
 import MyPosts from "../views/MyPosts.vue";
 import Posts from "../views/Posts.vue";
 import { useUserStore } from "../stores/userStore";
+import PostDetail from "../views/PostDetail.vue";
 
 const routes = [
     { path: "/", name: "register", component: Register },
     { path: "/users", name: "users", component: Users, meta: { requiresAuth: true } },
     { path: "/posts", name: "posts", component: Posts, meta: { requiresAuth: true } },
     { path: "/myposts", name: "myposts", component: MyPosts, meta: { requiresAuth: true } },
+    { path: "/postDetail", name: "postDetail", component: PostDetail},
 ];
 
 const router = createRouter({

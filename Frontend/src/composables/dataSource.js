@@ -52,6 +52,7 @@ export default function dataSource(
     },
 
     load: async function (loadOptions) {
+      console.log("load running esfgrds")
       const dxKeys = ["skip", "take", "requireTotalCount", "requireGroupCount", "sort", "filter"];
       let queryParams = { ...params };
 
@@ -71,6 +72,7 @@ export default function dataSource(
 
       try {
         const response = await api.get(url, { params: queryParams });
+        console.log(response)
         if (skipLoader.value) skipLoader.value = false;
 
         return {

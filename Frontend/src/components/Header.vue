@@ -4,7 +4,7 @@
     <v-spacer></v-spacer>
 
     <v-list class="d-flex ga-4 px-15">
-      <v-list-item to="/myposts" v-if="user?.role === 'user'">My Posts</v-list-item>
+      <v-list-item to="/myposts">My Posts</v-list-item>
       <v-list-item to="/posts" >Posts</v-list-item>
       <v-list-item to="/users" v-if="user?.role === 'admin'">Users</v-list-item>
 

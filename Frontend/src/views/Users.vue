@@ -5,20 +5,31 @@
       :filter-row="{ visible: true, showOperationChooser: true }" :export="{ enabled: true, fileName: 'DataGrid' }"
       @exporting="usersData.onExporting" :ref="usersData.dataGridRef"
       :selection="{ mode: 'multiple', showCheckBoxesMode: 'always' }"
-      :master-detail="{ enabled: true, template: detailTemplate }" 
+       @option-changed="onOptionChanged"
+      @editing-start="openEditModal" @row-removing="openDeleteModal" :editing="{
+        mode: 'row',
 
-      @editing-start="openEditModal"
-       @row-removing="openDeleteModal"
-
-      :editing="{
-        mode: 'row',  
-       
         allowUpdating: true,
         allowDeleting: true,
         allowAdding: true,
         useIcons: true,
-         confirmDelete: false
+        confirmDelete: false
       }">
+      <DxMasterDetail :enabled="true" template="master_detail" />
+
+      <template #master_detail="">
+        <v-card class="ma-4 pa-4" elevation="2">
+          <v-card-title>User Details Preview</v-card-title>
+          <v-card-text>
+            <div><strong>ID:</strong> jfdjwkbh</div>
+            <div><strong>Name:</strong>egfsdgfre</div>
+            <div><strong>Email:</strong> gfhdzsh</div>
+            <div><strong>Username:</strong> ghfd</div>
+          </v-card-text>
+        </v-card>
+      </template>
+
+
 
 
       <DxToolbar>
@@ -48,8 +59,8 @@
 
 
 
-  
-      
+
+
 
 
       <template #profileTemplate="{ data }">
@@ -59,6 +70,9 @@
 
         </div>
       </template>
+
+
+
 
 
 
@@ -114,46 +128,25 @@ import dataSource from "../composables/dataSource";
 import dxExtra from "../composables/dxExtra";
 
 
-const tasksData = ref({
-  78: [
-    {
-      id: 1,
-      user_id: 78,
-      subject: "Write blog post on SEO",
-      due_date: "2023-11-17T18:30:00.000Z",
-      status: "In Progress",
-      priority: "Medium",
-      completion: 40
-    },
-    {
-      id: 2,
-      user_id: 78,
-      subject: "Edit product page content",
-      due_date: "2023-11-15T18:30:00.000Z",
-      status: "Completed",
-      priority: "Low",
-      completion: 100
-    },
-    {
-      id: 3,
-      user_id: 78,
-      subject: "Organize team meeting",
-      due_date: "2023-11-14T18:30:00.000Z",
-      status: "Pending",
-      priority: "High",
-      completion: 0
-    },
-    {
-      id: 4,
-      user_id: 78,
-      subject: "Update customer feedback analysis",
-      due_date: "2023-11-19T18:30:00.000Z",
-      status: "In Progress",
-      priority: "Low",
-      completion: 50
-    }
-  ]
-});
+const userPostsCache = ref({});
+
+function getUserPosts(data) {
+  const userId = data.data.id; // Extract user ID correctly
+  console.log("Detail row data:", data);
+  console.log("User ID:", userId);
+
+  if (!userPostsCache.value[userId]) {
+    userPostsCache.value[userId] = [];
+    api.get(`/posts/fetchUser?user_id=${userId}`).then(response => {
+      userPostsCache.value[userId] = response.data.data;
+      userPostsCache.value = { ...userPostsCache.value }; // trigger reactivity
+    }).catch(error => {
+      console.error("Failed to fetch posts:", error);
+    });
+  }
+
+  return userPostsCache.value[userId];
+}
 
 
 
@@ -165,6 +158,13 @@ const refreshTableData = () => {
 
   usersData.refreshTable(usersData.dataGridRef);
 };
+
+function onOptionChanged(e) {
+
+  usersData.refreshTable(usersData.dataGridRef);
+
+}
+
 
 
 const deleteAllUsers = async () => {
@@ -228,7 +228,7 @@ function openEditModal(e) {
   const data = e.data
   selectedUser.value = { ...data };
   showEditModal.value = true;
-  e.cancel=true
+  e.cancel = true
 }
 
 async function saveUser() {
@@ -265,7 +265,7 @@ async function saveUser() {
 
 
 async function openDeleteModal(e) {
-  e.cancel=true
+  e.cancel = true
   console.log(e)
   const user = e.data;
   const result = await Swal.fire({

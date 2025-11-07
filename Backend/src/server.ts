@@ -2,7 +2,7 @@ import "reflect-metadata";
 import express from 'express';
 import userRoutes from './routes/userRoutes';
 import authRoutes from './routes/authRoutes';
-import taskRoutes from './routes/taskRoutes'
+import postRoutes from './routes/postRoutes';
 
 import dotenv from 'dotenv';
 import path from 'path';
@@ -24,7 +24,7 @@ app.use(cors({
 
 app.use("/users", userRoutes);
 app.use("/auth",authRoutes)
-app.use("/tasks",taskRoutes)
+app.use("/posts",postRoutes)
 
 
 

@@ -1,7 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne, JoinColumn } from "typeorm";
 import { User } from "./User";
 
-@Entity("Posts")
+@Entity("posts")
 export class Post {
     @PrimaryGeneratedColumn()
     id!: number;
@@ -31,9 +31,9 @@ export class Post {
     @Column({ nullable: true })
     tags!: string; 
 
-    @CreateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     created_at!: Date;
+    
 
-    @UpdateDateColumn({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP', onUpdate: "CURRENT_TIMESTAMP" })
-    updated_at!: Date;
+    
 }
