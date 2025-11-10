@@ -1,151 +1,194 @@
 <template>
-    <v-container class="posts-page ma-0 pa-0" fluid>
-        <v-progress-linear v-if="loading" indeterminate color="pink" height="4" class="mb-2"></v-progress-linear>
+    <v-container class=" d-flex ma-0 pa-0 main-container" style="overflow: hidden; justify-content: space-between;  background-color: #121212;" fluid>
 
 
 
-        <v-form @submit.prevent="createPost" enctype="multipart/form-data" class="post-form ">
-
-            <v-textarea v-model="content" label="What's on your mind?" required outlined dense
-                color="pink"></v-textarea>
-            <v-file-input @change="handleFileUpload" accept="image/*" label="Upload Image" outlined dense
-                color="pink"></v-file-input>
-
-            <v-btn type="submit" color="pink" class="mt-2" dark :loading="loading" :disabled="loading">
-                Post
-            </v-btn>
-
-        </v-form>
 
 
 
-        <v-divider class="my-4"></v-divider>
 
-        <div class="posts-feed">
-            <v-card v-for="post in posts" :key="post.id" class="post-card dark-card" @click="openCommentsDialog(post)">
 
-                <v-card-title class="post-header d-flex align-center">
-                    <v-avatar size="40" class="mr-3">
-                        <v-img
-                            :src="post.user.profile_pic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'"></v-img>
-                    </v-avatar>
-                    <div>
-                        <div class="username">{{ post.user?.username || 'User' }}</div>
-                        <div class="text-caption grey--text">{{ new Date(post.created_at).toLocaleString() }}</div>
+
+        <div class="left-profile mt-2">
+            <v-card class="profile-card">
+                <v-img
+                    :src="user.cover_img || 'https://res.cloudinary.com/dn6thwmgm/image/upload/v1762753671/Post_Attachments/onci0mgjuafreydv8isd.jpg'"
+                    height="100" cover></v-img>
+                <v-avatar size="80" class="mt-n10 mx-auto">
+                    <v-img :src="user.profile_pic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'"></v-img>
+                </v-avatar>
+                <div class="text-center mt-3">
+                    <h3>{{ user.name }}</h3>
+                    <p class="grey--text">@{{ user.username }}</p>
+                </div>
+                <div class="d-flex justify-space-around mt-3">
+                    <div><strong>0</strong>
+                        <div class="caption">Posts</div>
                     </div>
-                </v-card-title>
-
-
-                <v-card-text>
-
-
-
-
-                    <v-img
-                        :src="post.attachment || 'https://img.freepik.com/free-photo/vertical-shot-river-surrounded-by-mountains-meadows-scotland_181624-27881.jpg?semt=ais_hybrid&w=740&q=80'"
-                        class="mt-2 mb-3" height="500" width="100%" cover></v-img>
-
-
-                    <p class="post-content fs-5">{{ post.content }}</p>
-
-
-                </v-card-text>
-
-                <v-card-actions>
-                    <v-btn color="pink darken-1" text>
-                        <v-icon left>mdi-heart</v-icon>
-                        {{ post.likes_count }}
-                    </v-btn>
-
-                    <v-btn color="pink darken-1" @click="openCommentsDialog(post)">
-                        <v-icon left>mdi-message</v-icon> {{ post.comments_count }}
-                    </v-btn>
-
-                </v-card-actions>
-
+                    <div><strong>0</strong>
+                        <div class="caption">Followers</div>
+                    </div>
+                    <div><strong>0</strong>
+                        <div class="caption">Following</div>
+                    </div>
+                </div>
+                <v-btn block color="pink" class="mt-4" dark>My Profile</v-btn>
             </v-card>
         </div>
 
 
-        <v-dialog v-model="showCommentsDialog" max-width="64vw" persistent>
-            <v-card class="dialog-card large-dialog">
 
 
-                <v-card-text class="d-flex flex-row p-0">
+        <div class="center-content">
+            <v-progress-linear v-if="loading" indeterminate color="pink" height="4" class="mb-2"></v-progress-linear>
 
 
-                    <div class="left-side pa-4">
-                        <div class="post-header d-flex align-center mb-3">
-                            <v-avatar size="40" class="mr-3">
-                                <v-img
-                                    :src="selectedPost?.user?.profile_pic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'"></v-img>
-                            </v-avatar>
-                            <div>
-                                <div class="username">{{ selectedPost?.user?.username || 'User' }}</div>
-                                <div class="text-caption grey--text">{{ new
-                                    Date(selectedPost?.created_at).toLocaleString() }}</div>
-                            </div>
+
+            <v-form @submit.prevent="createPost" enctype="multipart/form-data" class="post-form ">
+
+                <v-textarea v-model="content" label="What's on your mind?" required outlined dense
+                    color="pink"></v-textarea>
+                <v-file-input @change="handleFileUpload" accept="image/*" label="Upload Image" outlined dense
+                    color="pink"></v-file-input>
+
+                <v-btn type="submit" color="pink" class="mt-2" dark :loading="loading" :disabled="loading">
+                    Post
+                </v-btn>
+
+            </v-form>
+
+
+
+            <v-divider class="my-4"></v-divider>
+
+            <div class="posts-feed">
+                <v-card v-for="post in posts" :key="post.id" class="post-card dark-card"
+                    @click="openCommentsDialog(post)">
+
+                    <v-card-title class="post-header d-flex align-center">
+                        <v-avatar size="40" class="mr-3">
+                            <v-img
+                                :src="post.user.profile_pic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'"></v-img>
+                        </v-avatar>
+                        <div>
+                            <div class="username">{{ post.user?.username || 'User' }}</div>
+                            <div class="text-caption grey--text">{{ new Date(post.created_at).toLocaleString() }}</div>
                         </div>
+                    </v-card-title>
 
-                        <p class="post-content mb-3">{{ selectedPost?.content }}</p>
+
+                    <v-card-text>
+
+
+
 
                         <v-img
-                            :src="selectedPost?.attachment || 'https://img.freepik.com/free-photo/vertical-shot-river-surrounded-by-mountains-meadows-scotland_181624-27881.jpg?semt=ais_hybrid&w=740&q=80'"
-                            height="600" cover></v-img>
-                    </div>
+                            :src="post.attachment || 'https://img.freepik.com/free-photo/vertical-shot-river-surrounded-by-mountains-meadows-scotland_181624-27881.jpg?semt=ais_hybrid&w=740&q=80'"
+                            class="mt-2 mb-3" height="500" width="100%" cover></v-img>
 
 
-
-                    <div class="right-side pa-4 d-flex flex-column ">
-                        <h3 class="text-pink mb-3">Comments</h3>
-                        <div v-if="loadingComments" class="d-flex justify-center align-center" style="height: 200px;">
-                            <v-progress-circular indeterminate color="pink" size="50"></v-progress-circular>
-                        </div>
+                        <p class="post-content fs-5">{{ post.content }}</p>
 
 
-                        <div v-else class="comments-list-scroll flex-grow-1 mb-3">
+                    </v-card-text>
 
-                            <div v-if="comments.length === 0" class="text-center grey--text" style="margin: auto;">
-                                No Comments Yet
-                            </div>
+                    <v-card-actions>
+                        <v-btn color="pink darken-1" text @click.stop="">
+                            <v-icon left>mdi-heart</v-icon>
+                            {{ post.likes_count }}
+                        </v-btn>
 
-                            <div v-for="comment in comments" :key="comment.id"
-                                class="comment-item d-flex align-start mb-2">
-                                <v-avatar size="30" class="mr-2 flex-shrink-0">
+                        <v-btn color="pink darken-1" @click="openCommentsDialog(post)">
+                            <v-icon left>mdi-message</v-icon> {{ post.comments_count }}
+                        </v-btn>
+
+                    </v-card-actions>
+
+                </v-card>
+            </div>
+
+
+            <v-dialog v-model="showCommentsDialog" max-width="64vw" persistent>
+                <v-card class="dialog-card large-dialog">
+
+
+                    <v-card-text class="d-flex flex-row p-0">
+
+
+                        <div class="left-side pa-4">
+                            <div class="post-header d-flex align-center mb-3">
+                                <v-avatar size="40" class="mr-3">
                                     <v-img
-                                        :src="comment.user.profile_pic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'"></v-img>
+                                        :src="selectedPost?.user?.profile_pic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'"></v-img>
                                 </v-avatar>
-                                <div class="comment-content flex-grow-1">
-                                    <span class="comment-username">{{ comment.user.username }}</span>
-                                    <span class="comment-text ml-1">{{ comment.text }}</span>
+                                <div>
+                                    <div class="username">{{ selectedPost?.user?.username || 'User' }}</div>
+                                    <div class="text-caption grey--text">{{ new
+                                        Date(selectedPost?.created_at).toLocaleString() }}</div>
                                 </div>
-                                <v-icon small class="ml-1 comment-heart" :color="comment.liked ? 'red' : 'grey'"
-                                    @click="toggleLike(comment)">
-                                    mdi-heart
-                                </v-icon>
-                                <v-icon v-if="comment.user.username == user.username" small color="red"
-                                    style="cursor:pointer;" @click="openDeleteDialog(comment.id)">
-                                    mdi-delete
-                                </v-icon>
-
-
                             </div>
+
+                            <p class="post-content mb-3">{{ selectedPost?.content }}</p>
+
+                            <v-img
+                                :src="selectedPost?.attachment || 'https://img.freepik.com/free-photo/vertical-shot-river-surrounded-by-mountains-meadows-scotland_181624-27881.jpg?semt=ais_hybrid&w=740&q=80'"
+                                height="600" cover></v-img>
                         </div>
 
 
 
-                        <div class="comment-input-section mt-auto">
-                            <v-textarea v-model="newComment" label="Add a comment..." dense outlined color="pink"
-                                hide-details rows="2"></v-textarea>
-                            <v-btn color="pink" class="mt-2" block @click="addComment">Post Comment</v-btn>
+                        <div class="right-side pa-4 d-flex flex-column ">
+                            <h3 class="text-pink mb-3">Comments</h3>
+                            <div v-if="loadingComments" class="d-flex justify-center align-center"
+                                style="height: 200px;">
+                                <v-progress-circular indeterminate color="pink" size="50"></v-progress-circular>
+                            </div>
+
+
+                            <div v-else class="comments-list-scroll flex-grow-1 mb-3">
+
+                                <div v-if="comments.length === 0" class="text-center grey--text" style="margin: auto;">
+                                    No Comments Yet
+                                </div>
+
+                                <div v-for="comment in comments" :key="comment.id"
+                                    class="comment-item d-flex align-start mb-2">
+                                    <v-avatar size="30" class="mr-2 flex-shrink-0">
+                                        <v-img
+                                            :src="comment.user.profile_pic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'"></v-img>
+                                    </v-avatar>
+                                    <div class="comment-content flex-grow-1">
+                                        <span class="comment-username">{{ comment.user.username }}</span>
+                                        <span class="comment-text ml-1">{{ comment.text }}</span>
+                                    </div>
+                                    <v-icon small class="ml-1 comment-heart" :color="comment.liked ? 'red' : 'grey'"
+                                        @click.stop="toggleLike(comment)">
+                                        mdi-heart
+                                    </v-icon>
+
+                                    <v-icon v-if="comment.user.username == user.username" small color="red"
+                                        style="cursor:pointer;" @click="openDeleteDialog(comment.id)">
+                                        mdi-delete
+                                    </v-icon>
+
+
+                                </div>
+                            </div>
+
+
+
+                            <div class="comment-input-section mt-auto">
+                                <v-textarea v-model="newComment" label="Add a comment..." dense outlined color="pink"
+                                    hide-details rows="2"></v-textarea>
+                                <v-btn color="pink" class="mt-2" block @click="addComment">Post Comment</v-btn>
+                            </div>
+
                         </div>
-
-                    </div>
-                    <v-icon color="pink" class="ml-auto mb-2"
-                        style="cursor:pointer; font-size:26px; position:absolute; top:10px; right:10px; z-index:10;"
-                        @click="showCommentsDialog = false">
-                        mdi-close
-                    </v-icon>
+                        <v-icon color="pink" class="ml-auto mb-2"
+                            style="cursor:pointer; font-size:26px; position:absolute; top:10px; right:10px; z-index:10;"
+                            @click="showCommentsDialog = false">
+                            mdi-close
+                        </v-icon>
 
 
 
@@ -153,32 +196,72 @@
 
 
 
-                </v-card-text>
+                    </v-card-text>
 
 
-                <!-- <v-card-actions>
+                    <!-- <v-card-actions>
                     <v-spacer></v-spacer>
                     <v-btn text color="pink" @click="showCommentsDialog = false">Close</v-btn>
                 </v-card-actions> -->
-            </v-card>
-        </v-dialog>
+                </v-card>
+            </v-dialog>
 
-        <v-dialog v-model="showDeleteDialog" max-width="400px">
-            <v-card class="pa-4 text-center" style="background-color:#1e1e1e; color:#fff; border-radius:12px;">
-                <v-icon color="pink" size="48" class="mb-3">mdi-alert-circle-outline</v-icon>
-                <h3>Delete Comment?</h3>
-                <p class="mt-2 mb-4" style="color:#bbb;">Are you sure you want to delete this comment? This action
-                    cannot be undone.</p>
-                <v-card-actions class="d-flex justify-center">
-                    <v-btn color="grey" variant="text" @click="showDeleteDialog = false">Cancel</v-btn>
-                    <v-btn color="pink" @click="confirmDelete">Delete</v-btn>
-                </v-card-actions>
+            <v-dialog v-model="showDeleteDialog" max-width="400px">
+                <v-card class="pa-4 text-center" style="background-color:#1e1e1e; color:#fff; border-radius:12px;">
+                    <v-icon color="pink" size="48" class="mb-3">mdi-alert-circle-outline</v-icon>
+                    <h3>Delete Comment?</h3>
+                    <p class="mt-2 mb-4" style="color:#bbb;">Are you sure you want to delete this comment? This action
+                        cannot be undone.</p>
+                    <v-card-actions class="d-flex justify-center">
+                        <v-btn color="grey" variant="text" @click="showDeleteDialog = false">Cancel</v-btn>
+                        <v-btn color="pink" @click="confirmDelete">Delete</v-btn>
+                    </v-card-actions>
+                </v-card>
+            </v-dialog>
+        </div>
+
+
+
+
+
+        <div class="left-profile ml-7 mt-2">
+            <v-card class="profile-card">
+                <v-img
+                    :src="user.cover_img || 'https://res.cloudinary.com/dn6thwmgm/image/upload/v1762753671/Post_Attachments/onci0mgjuafreydv8isd.jpg'"
+                    height="100" cover></v-img>
+                <v-avatar size="80" class="mt-n10 mx-auto">
+                    <v-img :src="user.profile_pic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'"></v-img>
+                </v-avatar>
+                <div class="text-center mt-3">
+                    <h3>{{ user.name }}</h3>
+                    <p class="grey--text">@{{ user.username }}</p>
+                </div>
+                <div class="d-flex justify-space-around mt-3">
+                    <div><strong>0</strong>
+                        <div class="caption">Posts</div>
+                    </div>
+                    <div><strong>0</strong>
+                        <div class="caption">Followers</div>
+                    </div>
+                    <div><strong>0</strong>
+                        <div class="caption">Following</div>
+                    </div>
+                </div>
+                <v-btn block color="pink" class="mt-4" dark>My Profile</v-btn>
             </v-card>
-        </v-dialog>
+        </div>
+
+
+
+
+
 
 
 
     </v-container>
+
+
+
 
 
 
@@ -368,15 +451,16 @@ onMounted(fetchPosts)
 </script>
 
 <style scoped>
-.posts-page {
+.center-content {
     display: flex;
     flex-direction: column;
     align-items: center;
     background-color: #121212;
-    min-height: 100vh;
+    width: 100% ;
     color: #e0e0e0;
     font-family: "Poppins", sans-serif;
-    padding: 2rem;
+  
+
 }
 
 .page-title {
@@ -512,4 +596,51 @@ onMounted(fetchPosts)
 .swal2-container {
     z-index: 99999 !important;
 }
+
+
+.left-profile {
+    width: 100%;
+    max-width: 23rem;
+    position: sticky;
+    
+
+}
+
+.profile-card {
+    background-color: #1e1e1e;
+    border-radius: 12px;
+    color: #fff;
+    text-align: center;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
+}
+
+
+
+.center-content {
+
+    overflow-y: auto;
+    height: 100vh;
+ 
+    
+}
+.center-content::-webkit-scrollbar {
+    display: none;
+}
+
+
+.left-profile {
+    position: sticky;
+   
+    height: 100vh;
+}
+
+.main-container {
+
+  overflow: hidden;
+  background-color: #121212;
+}
+body::-webkit-scrollbar {
+  display: none;
+}
+
 </style>

@@ -1,6 +1,6 @@
 
 <template>
-  <v-app>
+  <v-app style="overflow: hidden;">
 
     <Header v-if="accessToken" style="background-color: #121212; color: white;"></Header>
 
