@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import jwt from 'jsonwebtoken'
-import db from "../config/db";
+
 import { AppDataSource } from "../config/data-source";
 import { User } from "../entities/User";
 const saltRounds = 10

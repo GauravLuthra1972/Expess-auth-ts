@@ -1,14 +1,14 @@
 <template>
   <v-app-bar :elevation="2">
-    <v-app-title class="px-15 text-h5">Temp</v-app-title>
+    <v-app-title class="px-15 text-h5">SocialSphere</v-app-title>
     <v-spacer></v-spacer>
 
-    <v-list class="d-flex ga-4 px-15">
+    <v-list class="d-flex ga-4 px-15" style="background-color: #121212; color: white;">
       <v-list-item to="/myposts">My Posts</v-list-item>
       <v-list-item to="/posts" >Posts</v-list-item>
       <v-list-item to="/users" v-if="user?.role === 'admin'">Users</v-list-item>
 
-      <v-menu offset-y>
+      <v-menu >
         <template #activator="{ props }">
           <v-btn v-bind="props" icon>
             <v-avatar>
@@ -17,7 +17,7 @@
           </v-btn>
         </template>
 
-        <v-list>
+        <v-list style="background-color: #121212; color: white;">
           <div class="d-flex justify-center py-4" style="cursor:pointer" @click="openUploadDialog">
             <v-avatar size="80">
               <v-img :src="user?.profile_pic || defaultprofile" />

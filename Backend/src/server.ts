@@ -1,8 +1,11 @@
 import "reflect-metadata";
 import express from 'express';
+
 import userRoutes from './routes/userRoutes';
 import authRoutes from './routes/authRoutes';
 import postRoutes from './routes/postRoutes';
+import commentRoutes from './routes/commentRoutes'
+
 
 import dotenv from 'dotenv';
 import path from 'path';
@@ -25,6 +28,7 @@ app.use(cors({
 app.use("/users", userRoutes);
 app.use("/auth",authRoutes)
 app.use("/posts",postRoutes)
+app.use("/comments",commentRoutes)
 
 
 

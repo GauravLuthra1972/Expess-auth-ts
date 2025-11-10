@@ -5,7 +5,7 @@
       :filter-row="{ visible: true, showOperationChooser: true }" :export="{ enabled: true, fileName: 'DataGrid' }"
       @exporting="usersData.onExporting" :ref="usersData.dataGridRef"
       :selection="{ mode: 'multiple', showCheckBoxesMode: 'always' }"
-       @option-changed="onOptionChanged"
+      @option-changed="onOptionChanged"
       @editing-start="openEditModal" @row-removing="openDeleteModal" :editing="{
         mode: 'row',
 
@@ -15,19 +15,9 @@
         useIcons: true,
         confirmDelete: false
       }">
-      <DxMasterDetail :enabled="true" template="master_detail" />
+       <DxMasterDetail :enabled="true" template="master_detail" />
 
-      <template #master_detail="">
-        <v-card class="ma-4 pa-4" elevation="2">
-          <v-card-title>User Details Preview</v-card-title>
-          <v-card-text>
-            <div><strong>ID:</strong> jfdjwkbh</div>
-            <div><strong>Name:</strong>egfsdgfre</div>
-            <div><strong>Email:</strong> gfhdzsh</div>
-            <div><strong>Username:</strong> ghfd</div>
-          </v-card-text>
-        </v-card>
-      </template>
+     
 
 
 
@@ -123,7 +113,9 @@ import Swal from "sweetalert2";
 import { ref } from "vue"
 
 import api from "../plugins/api";
-import DxDataGrid, { DxColumn, DxToolbar, DxItem, DxButton } from "devextreme-vue/data-grid";
+import DxDataGrid, { DxColumn, DxToolbar, DxItem, DxButton ,DxMasterDetail} from "devextreme-vue/data-grid";
+
+
 import dataSource from "../composables/dataSource";
 import dxExtra from "../composables/dxExtra";
 

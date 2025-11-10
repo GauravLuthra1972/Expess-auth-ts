@@ -2,7 +2,8 @@
 <template>
   <v-app>
 
-    <Header v-if="accessToken"></Header>
+    <Header v-if="accessToken" style="background-color: #121212; color: white;"></Header>
+
     
 
     <v-main v-if="$route.name!='users'" class="bg-black">

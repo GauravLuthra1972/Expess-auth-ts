@@ -49,9 +49,9 @@ class postController {
     }
 
     async addPost(req: Request, res: Response) {
-        const { user_id, title, content, status, attachment, tags } = req.body;
+        const { user_id, content,  attachment, tags } = req.body;
 
-        if (!user_id || !title || !content) {
+        if (!user_id ||  !content) {
             return res.status(400).json({ error: 'user_id, title, and content are required' });
         }
 
@@ -69,9 +69,9 @@ class postController {
 
             const newPost = postRepo.create({
                 user,
-                title,
+            
                 content,
-                status: status || "Draft",
+        
                 attachment:attachmentUrl,
                 tags
             });
@@ -84,6 +84,8 @@ class postController {
             res.status(500).json({ error: 'Failed to create post', details: err });
         }
     }
+
+
 
 
 

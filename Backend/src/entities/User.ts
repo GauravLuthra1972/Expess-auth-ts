@@ -1,6 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, OneToMany } from "typeorm";
+import { Post } from "./Post";
+import { Comment } from "./Comment";
+import { Like } from "./Like";
+import { Follow } from "./Follow";
 
-@Entity("Users")
+@Entity("users")
 export class User {
     @PrimaryGeneratedColumn()
     id!: number;
@@ -8,22 +12,40 @@ export class User {
     @Column()
     name!: string;
 
-    @Column()
+    @Column({ unique: true })
     email!: string;
 
-    @Column()
+    @Column({ unique: true })
     username!: string;
 
     @Column()
     password!: string;
 
-    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-    created_at!: Date;
-
     @Column({ nullable: true })
     profile_pic!: string;
 
     @Column({ nullable: true })
-    role!: string;
-}
+    cover_img!: string;
 
+    @Column({ default: "user" })
+    role!: string;
+
+    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+    created_at!: Date;
+
+
+    @OneToMany(() => Post, post => post.user)
+    posts!: Post[];
+
+    @OneToMany(() => Comment, comment => comment.user)
+    comments!: Comment[];
+
+    @OneToMany(() => Like, like => like.user)
+    likes!: Like[];
+
+    @OneToMany(() => Follow, follow => follow.follower)
+    following!: Follow[];
+
+    @OneToMany(() => Follow, follow => follow.following)
+    followers!: Follow[];
+}
