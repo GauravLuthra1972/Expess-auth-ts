@@ -1,44 +1,10 @@
 <template>
-    <v-container class=" d-flex ma-0 pa-0 main-container" style="overflow: hidden; justify-content: space-between;  background-color: #121212;" fluid>
+    <v-container class=" d-flex ma-0 pa-0 main-container"
+        style="overflow: hidden; justify-content: space-between;  background-color: #121212;" fluid>
 
-
-
-
-
-
-
-
-
-        <div class="left-profile mt-2">
-            <v-card class="profile-card">
-                <v-img
-                    :src="user.cover_img || 'https://res.cloudinary.com/dn6thwmgm/image/upload/v1762753671/Post_Attachments/onci0mgjuafreydv8isd.jpg'"
-                    height="100" cover></v-img>
-                <v-avatar size="80" class="mt-n10 mx-auto">
-                    <v-img :src="user.profile_pic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'"></v-img>
-                </v-avatar>
-                <div class="text-center mt-3">
-                    <h3>{{ user.name }}</h3>
-                    <p class="grey--text">@{{ user.username }}</p>
-                </div>
-                <div class="d-flex justify-space-around mt-3">
-                    <div><strong>0</strong>
-                        <div class="caption">Posts</div>
-                    </div>
-                    <div><strong>0</strong>
-                        <div class="caption">Followers</div>
-                    </div>
-                    <div><strong>0</strong>
-                        <div class="caption">Following</div>
-                    </div>
-                </div>
-                <v-btn block color="pink" class="mt-4" dark>My Profile</v-btn>
-            </v-card>
-        </div>
-
-
-
-
+        <LeftSectionHome></LeftSectionHome>
+        
+        
         <div class="center-content">
             <v-progress-linear v-if="loading" indeterminate color="pink" height="4" class="mb-2"></v-progress-linear>
 
@@ -220,36 +186,11 @@
             </v-dialog>
         </div>
 
+        <LeftSectionHome></LeftSectionHome>
 
 
 
 
-        <div class="left-profile ml-7 mt-2">
-            <v-card class="profile-card">
-                <v-img
-                    :src="user.cover_img || 'https://res.cloudinary.com/dn6thwmgm/image/upload/v1762753671/Post_Attachments/onci0mgjuafreydv8isd.jpg'"
-                    height="100" cover></v-img>
-                <v-avatar size="80" class="mt-n10 mx-auto">
-                    <v-img :src="user.profile_pic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'"></v-img>
-                </v-avatar>
-                <div class="text-center mt-3">
-                    <h3>{{ user.name }}</h3>
-                    <p class="grey--text">@{{ user.username }}</p>
-                </div>
-                <div class="d-flex justify-space-around mt-3">
-                    <div><strong>0</strong>
-                        <div class="caption">Posts</div>
-                    </div>
-                    <div><strong>0</strong>
-                        <div class="caption">Followers</div>
-                    </div>
-                    <div><strong>0</strong>
-                        <div class="caption">Following</div>
-                    </div>
-                </div>
-                <v-btn block color="pink" class="mt-4" dark>My Profile</v-btn>
-            </v-card>
-        </div>
 
 
 
@@ -276,6 +217,7 @@ import Swal from 'sweetalert2'
 import { ref, onMounted, computed } from 'vue'
 import api from '../plugins/api'
 import { useUserStore } from '../stores/userStore'
+import LeftSectionHome from '../components/LeftSectionHome.vue'
 
 
 const userStore = useUserStore()
@@ -412,7 +354,10 @@ const createPost = async () => {
             headers: { 'Content-Type': 'multipart/form-data' }
         })
 
+        await userStore.fetchUser()
         await fetchPosts()
+
+      
     } catch (err) {
         console.error(err)
     } finally {
@@ -456,10 +401,10 @@ onMounted(fetchPosts)
     flex-direction: column;
     align-items: center;
     background-color: #121212;
-    width: 100% ;
+    width: 100%;
     color: #e0e0e0;
     font-family: "Poppins", sans-serif;
-  
+
 
 }
 
@@ -472,7 +417,7 @@ onMounted(fetchPosts)
 
 .post-form {
     width: 100%;
-    max-width: 800px;
+    max-width: 55rem;
     display: flex;
     flex-direction: column;
     gap: 1rem;
@@ -487,7 +432,7 @@ onMounted(fetchPosts)
     align-items: center;
     gap: 1.5rem;
     width: 100%;
-    max-width: 500px;
+    max-width: 32vw;
 }
 
 .post-card {
@@ -598,21 +543,8 @@ onMounted(fetchPosts)
 }
 
 
-.left-profile {
-    width: 100%;
-    max-width: 23rem;
-    position: sticky;
-    
 
-}
 
-.profile-card {
-    background-color: #1e1e1e;
-    border-radius: 12px;
-    color: #fff;
-    text-align: center;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
-}
 
 
 
@@ -620,27 +552,23 @@ onMounted(fetchPosts)
 
     overflow-y: auto;
     height: 100vh;
- 
-    
+
+
 }
+
 .center-content::-webkit-scrollbar {
     display: none;
 }
 
 
-.left-profile {
-    position: sticky;
-   
-    height: 100vh;
-}
 
 .main-container {
 
-  overflow: hidden;
-  background-color: #121212;
-}
-body::-webkit-scrollbar {
-  display: none;
+    overflow: hidden;
+    background-color: #121212;
 }
 
+body::-webkit-scrollbar {
+    display: none;
+}
 </style>

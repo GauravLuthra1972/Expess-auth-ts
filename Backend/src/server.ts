@@ -5,6 +5,7 @@ import userRoutes from './routes/userRoutes';
 import authRoutes from './routes/authRoutes';
 import postRoutes from './routes/postRoutes';
 import commentRoutes from './routes/commentRoutes'
+import followRoutes from './routes/followRoutes'
 
 
 import dotenv from 'dotenv';
@@ -29,6 +30,7 @@ app.use("/users", userRoutes);
 app.use("/auth",authRoutes)
 app.use("/posts",postRoutes)
 app.use("/comments",commentRoutes)
+app.use("/follow",followRoutes)
 
 
 

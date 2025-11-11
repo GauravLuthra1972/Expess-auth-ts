@@ -152,8 +152,8 @@ class UserController {
             const skip = parseInt(req.query.skip as string)
             const take = parseInt(req.query.take as string)
 
-            console.log("Skip11",skip)
-            console.log("take11",take)
+            console.log("Skip11", skip)
+            console.log("take11", take)
             const requireTotalCount = req.query.requireTotalCount === "true";
 
             let where = "";
@@ -161,7 +161,7 @@ class UserController {
 
             if (req.query.filter) {
                 const filter = JSON.parse(req.query.filter as string);
-                console.log("kjbdokj",filter)
+                console.log("kjbdokj", filter)
                 if (filter && filter.length > 0) {
                     where = UserController.buildwhere(filter);
                     console.log("jbfijbdjivjijbjfbokg", where)
@@ -172,7 +172,7 @@ class UserController {
                 const sort = JSON.parse(req.query.sort as string);
                 if (sort && sort.length > 0) {
                     order = UserController.buildorder(sort);
-                    
+
                 }
             }
 
@@ -182,9 +182,9 @@ class UserController {
                 .skip(skip)
                 .take(take);
 
-            if (where!="") query.where(where);
-            if (order!="") query.orderBy(order);
-    
+            if (where != "") query.where(where);
+            if (order != "") query.orderBy(order);
+
             const users = await query.getMany();
 
             if (requireTotalCount) {
@@ -215,16 +215,31 @@ class UserController {
             const userId = decoded.id;
 
             const userRepo = AppDataSource.getRepository(User);
-            const info = await userRepo.findOne({ where: { id: userId } });
-            console.log(info)
+            const info = await userRepo.findOne({
+                where: { id: userId },
+                relations: ["followers", "following", "posts"]
+            });
 
             if (!info) return res.json({ message: "User not found" });
 
-            return res.json({ message: "User Data Fetched", info });
+            const followersCount = info.followers?.length || 0;
+            const followingCount = info.following?.length || 0;
+            const postsCount = info.posts?.length || 0;
+
+            return res.json({
+                message: "User Data Fetched",
+                info: {
+                    ...info,
+                    followersCount,
+                    followingCount,
+                    postsCount
+                }
+            });
         } catch (err) {
             return res.json({ message: "Error in fetching", err });
         }
     }
+
 
 
     async deleteUser(req: Request, res: Response) {

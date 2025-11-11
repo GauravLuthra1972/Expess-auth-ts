@@ -24,6 +24,7 @@ export const useUserStore = defineStore('user', {
     }
     ,
     async fetchUser() {
+      console.log("fetchhhiiiiimmmmmmg")
       try {
         const { data } = await api.get('/users/userinfo')
         console.log(data.info)
