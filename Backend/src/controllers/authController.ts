@@ -3,6 +3,8 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import { AppDataSource } from "../config/data-source";
 import { User } from "../entities/User";
+import { generateSecret, verifyToken } from "2fa-node";
+import QRCode from "qrcode";
 
 const saltRounds = 10
 
@@ -27,7 +29,7 @@ class authController {
             }
 
             const hashedPassword = bcrypt.hashSync(password, saltRounds);
-        
+
             const newUser = userRepo.create({
                 name,
                 email,
@@ -102,6 +104,61 @@ class authController {
     }
 
 
+    async twoFac(req: Request, res: Response) {
+        try {
+            const { userId } = req.body;
+            if (!userId) return res.status(400).json({ error: "userId is required" });
+
+            const userRepo = AppDataSource.getRepository(User);
+            const user = await userRepo.findOneBy({ id: userId });
+            if (!user) return res.status(404).json({ error: "User not found" });
+
+            const newSecret = await generateSecret({
+                name: "SocialSphere",
+                account: user.username,
+                numberOfSecretBytes: 20,
+                counter: 0
+            });
+
+            // user.twofaSecret = newSecret.secret;
+            const qrCodeImage = await QRCode.toDataURL(newSecret.uri);
+
+            // await userRepo.save(user);
+
+            res.json({ qrCodeImage, secret: newSecret.secret });
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ error: "Internal Server Error" });
+        }
+    }
+
+    async twofacverify(req: Request, res: Response) {
+    try {
+        const { userId, code, secret } = req.body;
+        if (!userId || !code || !secret) 
+            return res.status(400).json({ error: "userId, code, and secret are required" });
+
+        const userRepo = AppDataSource.getRepository(User);
+        const user = await userRepo.findOneBy({ id: userId });
+        if (!user) return res.status(404).json({ error: "User not found" });
+
+       const verification = verifyToken(secret, code) ;
+        if (!verification) 
+            return res.status(400).json({ success: false, message: "Invalid token" });
+
+        user.twofaSecret = secret;
+        user.isTwofaEnabled = true;
+        await userRepo.save(user);
+
+        res.json({
+            success: true,
+            message: `2FA enabled successfully`
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: "Internal Server Error" });
+    }
+}
 
 
 

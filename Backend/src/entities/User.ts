@@ -33,6 +33,11 @@ export class User {
     @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
     created_at!: Date;
 
+@Column({ nullable: true })
+  twofaSecret!: string;
+
+  @Column({ default: false })
+  isTwofaEnabled!: boolean;
 
     @OneToMany(() => Post, post => post.user)
     posts!: Post[];
