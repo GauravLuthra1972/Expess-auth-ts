@@ -186,7 +186,7 @@
             </v-dialog>
         </div>
 
-        <LeftSectionHome></LeftSectionHome>
+        <RightSectionHome></RightSectionHome>
 
 
 
@@ -218,6 +218,7 @@ import { ref, onMounted, computed } from 'vue'
 import api from '../plugins/api'
 import { useUserStore } from '../stores/userStore'
 import LeftSectionHome from '../components/LeftSectionHome.vue'
+import RightSectionHome from '../components/RightSectionHome.vue'
 
 
 const userStore = useUserStore()
@@ -552,18 +553,16 @@ onMounted(fetchPosts)
 
     overflow-y: auto;
     height: 100vh;
+      scrollbar-width: none;
 
 
 }
-
 .center-content::-webkit-scrollbar {
-    display: none;
-}
-
+  display: none; }
 
 
 .main-container {
-
+    height: 100%;
     overflow: hidden;
     background-color: #121212;
 }

@@ -9,7 +9,8 @@ export const useUserStore = defineStore('user', {
     accessToken: null,
     refreshToken: null,
     flag:false,
-    isRemember:false
+    isRemember:false,
+
   }),
 
   actions: {
@@ -36,33 +37,7 @@ export const useUserStore = defineStore('user', {
       }
     },
 
-    async login(username, password) {
-      try {
-        const { data } = await api.post('/auth/login', { username, password })
-        console.log(data)
-        if (data.accesstoken && data.refreshtoken) {
-          this.accessToken = data.accesstoken
-          this.refreshToken = data.refreshtoken
-          await this.fetchUser()
-          alert('User Logged in')
-          router.push('/posts')
-        } else {
-          Swal.fire('Error', data.message || 'Login failed', 'error')
-
-          if(data.message=='User is not registered'){
-          this.toggleFlag()
-
-        }
-          
-        }
-      } catch (error) {
-        Swal.fire('Error', error.response?.data?.message || 'Login failed', 'error')
-
-        
-        
-        
-      }
-    },
+    
 
     async register(username, password, name, email) {
       try {

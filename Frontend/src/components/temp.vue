@@ -39,17 +39,11 @@
           </v-list-item>
 
 
-        <div class="d-flex align-center justify center mt-3 mb-2 ml-5 ga-3">
-  <span class="text-subtitle-1">2 FA</span>
-  <v-switch
-    v-model="user.isTwofaEnabled"
-    @change="toggleTwoFA"
-    inset
-    hide-details
-    density="compact"
-    class="ma-0 pa-0"
-  />
-</div>
+          <div class="d-flex align-center justify center mt-3 mb-2 ml-5 ga-3">
+            <span class="text-subtitle-1">2 FA</span>
+            <v-switch v-model="user.isTwofaEnabled" @change="toggleTwoFA" inset hide-details density="compact"
+              class="ma-0 pa-0" />
+          </div>
 
 
 
@@ -148,7 +142,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted ,watch} from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useUserStore } from '../stores/userStore'
 import api from '../plugins/api'
 
@@ -209,41 +203,54 @@ async function toggleTwoFA() {
 
 async function verifyTwoFA() {
   if (!twofaCode.value) {
-    alert('Please enter the code from your Authenticator app.')
-    return
+    alert('Please enter the code from your Authenticator app.');
+    twofaDialog.value=false
+    return;
   }
 
   try {
-    const res = await api.post('/auth/twofacverify', {
-      userId: user.value.id,
-      code: twofaCode.value,
-      secret: String(secret.value || user.value.twofaSecret)
-    })
+    let res;
+
+    if (user.value.isTwofaEnabled) {
+      console.log("running correctlydsgsfdg")
+      res = await api.post('/auth/twofacverify', {
+        userId: user.value.id,
+        code: twofaCode.value,
+        secret: String(secret.value || user.value.twofaSecret),
+        disable: true
+      });
+
+      console.log(res)
+    } else {
+      res = await api.post('/auth/twofacverify', {
+        userId: user.value.id,
+        code: twofaCode.value,
+        secret: String(secret.value || user.value.twofaSecret)
+      });
+    }
 
     if (res.data.success) {
-      twofaDialog.value = false
-      secret.value = null
-      alert(res.data.message)
-      await fetchUser()
+      twofaDialog.value = false;
+      secret.value = null;
+
+      if (res.data.message.includes('disabled')) {
+        user.value.isTwofaEnabled = false;
+      } else {
+        user.value.isTwofaEnabled = true;
+      }
+
+      alert(res.data.message);
+      await fetchUser();
     } else {
-      alert('Invalid code, please try again.')
-      await fetchUser()
+      alert('Invalid code, please try again.');
+      
     }
   } catch (error) {
-    console.error(error)
-    const msg = error.response?.data?.message || error.response?.data?.error || 'Something went wrong. Try again.'
-    alert(msg)
+    console.error(error);
+    const msg = error.response?.data?.message || error.response?.data?.error || 'Something went wrong. Try again.';
+    alert(msg);
   }
 }
-
-
-
-watch(twofaDialog, async (newVal, oldVal) => {
-
-  if (oldVal && !newVal) {
-    await fetchUser()
-  }
-})
 
 
 function saveChanges() {

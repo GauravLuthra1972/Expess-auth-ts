@@ -1,37 +1,41 @@
-
 <template>
-  <v-app style="overflow: hidden;">
-
-    <Header v-if="accessToken" style="background-color: #121212; color: white;"></Header>
-
+  <v-app style="overflow: hidden; background-color: #121212;">
     
+    <!-- Header stays fixed on top -->
+    <Header
+      v-if="accessToken"
+      app
+      fixed
+      style="background-color: #121212; color: white;"
+    />
 
-    <v-main v-if="$route.name!='users'" class="bg-black">
-
-
-
-      <router-view></router-view>
-
-    </v-main>
-     <v-main v-if="$route.name === 'users'">
+    <!-- Main content area below header -->
+    <v-main class="bg-black">
       <router-view></router-view>
     </v-main>
-    
+
   </v-app>
 </template>
 
 <script>
-import { useUserStore } from './stores/userStore';
-import { mapState } from 'pinia';
-export default{
-  data(){
-    return{
+import { useUserStore } from './stores/userStore'
+import { mapState } from 'pinia'
 
-    }
-  },
-
-  computed:{
-    ...mapState(useUserStore,['accessToken'])
+export default {
+  computed: {
+    ...mapState(useUserStore, ['accessToken'])
   }
 }
 </script>
+
+<style>
+html, body, #app {
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background-color: #121212;
+}
+.v-main {
+  overflow-y: auto;
+}
+</style>
