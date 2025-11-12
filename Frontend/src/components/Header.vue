@@ -1,7 +1,13 @@
 <template>
   <v-app-bar :elevation="2">
     <v-app-title class="px-15 text-h5">SocialSphere</v-app-title>
+
+      <div style="flex: 1; max-width: 20rem; ">
+    <UserSearch ></UserSearch>
+    </div>
     <v-spacer></v-spacer>
+
+    
 
     <v-list class="d-flex ga-4 px-15" style="background-color: #121212; color: white;">
       <v-list-item to="/myposts">My Posts</v-list-item>
@@ -151,6 +157,8 @@
 import { ref, computed, onMounted ,watch} from 'vue'
 import { useUserStore } from '../stores/userStore'
 import api from '../plugins/api'
+import UserSearch from './UserSearch.vue'
+
 
 const userStore = useUserStore()
 const { logout, fetchUser, updateUser, deleteUser, uploadProfile } = userStore

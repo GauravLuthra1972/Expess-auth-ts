@@ -394,6 +394,31 @@ class UserController {
         }
     }
 
+    async searchUsers(req: Request, res: Response) {
+    try {
+        const { query } = req.query; 
+        if (!query || typeof query !== "string") {
+            return res.status(400).json({ message: "Query is required" });
+        }
+
+        const userRepo = AppDataSource.getRepository(User);
+
+        const users = await userRepo
+            .createQueryBuilder("user")
+            .where("user.name LIKE :query", { query: `%${query}%` })
+            .orWhere("user.username LIKE :query", { query: `%${query}%` })
+       
+            .select(["user.id", "user.name", "user.username", "user.email", "user.profile_pic"])
+            .getMany();
+
+        res.json({ users });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: "Internal Server Error" });
+    }
+}
+
+
 
     async profileUpload(req: Request, res: Response) {
         try {

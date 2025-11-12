@@ -2,10 +2,10 @@
     <v-container class=" d-flex ma-0 pa-0 main-container"
         style="overflow: hidden; justify-content: space-between;  background-color: #121212;" fluid>
 
-        <LeftSectionHome></LeftSectionHome>
-        
-        
-        <div class="center-content">
+        <LeftSectionHome class="mt-4"></LeftSectionHome>
+
+
+        <div class="center-content mt-4">
             <v-progress-linear v-if="loading" indeterminate color="pink" height="4" class="mb-2"></v-progress-linear>
 
 
@@ -157,6 +157,17 @@
                         </v-icon>
 
 
+<!-- Left and Right Arrows -->
+<v-btn icon color="pink" class="nav-left" :disabled="selectedPostIndex === 0" @click="prevPost">
+  <v-icon>mdi-chevron-left</v-icon>
+</v-btn>
+<v-btn icon color="pink" class="nav-right" :disabled="selectedPostIndex === posts.length - 1" @click="nextPost">
+  <v-icon>mdi-chevron-right</v-icon>
+</v-btn>
+
+
+
+
 
 
 
@@ -186,7 +197,7 @@
             </v-dialog>
         </div>
 
-        <RightSectionHome></RightSectionHome>
+        <RightSectionHome class="mt-4"></RightSectionHome>
 
 
 
@@ -238,6 +249,8 @@ const posts = ref([])
 
 const showCommentsDialog = ref(false)
 const selectedPost = ref(null)
+const selectedPostIndex = ref(null)
+
 
 
 async function addComment() {
@@ -321,6 +334,7 @@ async function openCommentsDialog(post) {
     loadingComments.value = true
     selectedPost.value = post
     showCommentsDialog.value = true
+    selectedPostIndex.value = posts.value.findIndex(p => p.id === post.id)
 
     const minDelay = new Promise(res => setTimeout(res, 2000))
 
@@ -332,6 +346,27 @@ async function openCommentsDialog(post) {
         loadingComments.value = false
     }
 }
+
+const nextPost = async () => {
+    if (selectedPostIndex.value < posts.value.length - 1) {
+        selectedPostIndex.value++
+        selectedPost.value = posts.value[selectedPostIndex.value]
+        loadingComments.value = true
+        await fetchComments(selectedPost.value.id)
+        loadingComments.value = false
+    }
+}
+
+const prevPost = async () => {
+    if (selectedPostIndex.value > 0) {
+        selectedPostIndex.value--
+        selectedPost.value = posts.value[selectedPostIndex.value]
+        loadingComments.value = true
+        await fetchComments(selectedPost.value.id)
+        loadingComments.value = false
+    }
+}
+
 
 
 function getPosts() {
@@ -358,7 +393,7 @@ const createPost = async () => {
         await userStore.fetchUser()
         await fetchPosts()
 
-      
+
     } catch (err) {
         console.error(err)
     } finally {
@@ -543,6 +578,23 @@ onMounted(fetchPosts)
     z-index: 99999 !important;
 }
 
+.nav-left, .nav-right {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 15;
+  background-color: rgba(30,30,30,0.6); /* optional: makes arrows visible */
+}
+
+.nav-left {
+  left: 5px;
+}
+
+.nav-right {
+  right: 5px;
+}
+
+
 
 
 
@@ -553,12 +605,14 @@ onMounted(fetchPosts)
 
     overflow-y: auto;
     height: 100vh;
-      scrollbar-width: none;
+    scrollbar-width: none;
 
 
 }
+
 .center-content::-webkit-scrollbar {
-  display: none; }
+    display: none;
+}
 
 
 .main-container {

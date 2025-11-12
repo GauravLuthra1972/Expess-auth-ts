@@ -15,4 +15,5 @@ router.post("/profile", uploadProfile.single("image"), userController.profileUpl
 router.delete("/deletebyid/:id",userController.deletebyId)
 router.put("/adminupdate",userController.adminUpdateUser)
 router.delete("/delete-multiple", userController.deleteMultiple);
+router.get("/search",userController.searchUsers)
 export default router;
