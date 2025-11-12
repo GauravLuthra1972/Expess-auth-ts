@@ -1,5 +1,5 @@
 <template>
-  <div class="right-profile mt-2 mx-8">
+  <div class="right-profile mx-8">
     <div class="suggested-container pa-4">
       <h3
         class="text-center mb-4"
