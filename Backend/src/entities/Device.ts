@@ -1,20 +1,27 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from "typeorm";
+// entities/Device.ts
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm";
 import { User } from "./User";
 
-@Entity("trusted_devices")
-export class TrustedDevice {
-    @PrimaryGeneratedColumn()
-    id!: number;
+@Entity("trustedevices")
+export class Device {
+  @PrimaryGeneratedColumn()
+  id!: number;
 
-    @ManyToOne(() => User, user => user.id)
-    user!: User;
+  @ManyToOne(() => User, user => user.id, { onDelete: "CASCADE" })
+  user!: User;
 
-    @Column()
-    deviceFingerprint!: string; 
+  @Column()
+  deviceFingerprint!: string;
 
-    @Column()
-    deviceName!: string; 
+  @Column()
+  deviceName!: string;
 
-    @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
-    trusted_at!: Date;
+  @Column()
+  tokenHash!: string;
+
+  @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
+  trusted_at!: Date;
+
+  @Column({ type: "timestamp", nullable: true })
+  expires_at!: Date;
 }

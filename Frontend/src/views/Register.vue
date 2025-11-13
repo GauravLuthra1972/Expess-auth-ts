@@ -10,7 +10,7 @@
 
         <div v-if="flag">
 
-          <div class="d-flex ga-4"> 
+          <div class="d-flex ga-4">
             <v-text-field label="Name" v-model="name"></v-text-field>
             <v-text-field label="Email" v-model="email"></v-text-field>
 
@@ -19,7 +19,7 @@
           <v-text-field label="Username" v-model="username"></v-text-field>
           <v-text-field label="Password" v-model="password"></v-text-field>
           <v-text-field label="Confirm Password" v-model="confirmPassword"></v-text-field>
-            <v-checkbox v-model="store.isRemember" label="Remember Me" class="ma-0" @click="toggleremember"></v-checkbox>
+          <v-checkbox v-model="store.isRemember" label="Remember Me" class="ma-0" @click="toggleremember"></v-checkbox>
         </div>
 
         <div v-if="!flag && !twofaRequired">
@@ -75,6 +75,8 @@ const tempUserId = ref('')
 
 const twofaRequired = ref(false)
 const twofaCode = ref('')
+const trustDevice = ref(false)
+
 
 const flag = computed(() => store.flag)
 
@@ -106,7 +108,7 @@ async function login(username, password) {
       router.push('/posts')
       return
     } else if (data.twofaRequired) {
-    
+
       twofaRequired.value = true
       tempUserId.value = data.userId
     } else {
@@ -131,33 +133,44 @@ async function verifyTwoFA() {
     const res = await api.post('/auth/twofacverify', {
       userId: tempUserId.value,
       code: twofaCode.value,
-      login:true
+      login: true
     });
-    console.log(res)
 
     if (res.data.success) {
-      twofaRequired.value = false
-      twofaCode.value = ''
+      twofaRequired.value = false;
 
-     
+      const result = await Swal.fire({
+        title: 'Trust This Device?',
+        text: 'You can trust this device to skip 2FA next time.',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonText: 'Yes, trust this device',
+        cancelButtonText: 'No',
+      });
 
-      console.log("storetoken")
-      console.log(store.accessToken)
-      console.log(store.refreshToken)
-      store.accessToken = res.data.accesstoken
-      store.refreshToken =res. data.refreshtoken
-      await store.fetchUser()
-       alert(res.data.message)
-    
-     
-      router.push('/posts')
-      return
+      if (result.isConfirmed) {
+        await api.post('/auth/twofacverify', {
+          userId: tempUserId.value,
+          code: twofaCode.value,
+          login: true,
+          trust: true
+        });
+      }
+
+
+      store.accessToken = res.data.accesstoken;
+      store.refreshToken = res.data.refreshtoken;
+      await store.fetchUser();
+
+      alert(res.data.message);
+      router.push('/posts');
     } else {
-      alert(res.data.message || 'Invalid code, please try again.')
+      alert(res.data.message || 'Invalid code, please try again.');
     }
   } catch (error) {
-    const msg = error.response?.data?.message || error.response?.data?.error || 'Something went wrong. Try again.'
-    alert(msg)
+    const msg = error.response?.data?.message || error.response?.data?.error || 'Something went wrong. Try again.';
+    alert(msg);
   }
 }
+
 </script>

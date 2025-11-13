@@ -5,6 +5,7 @@ import { Post } from "../entities/Post";
 import { Comment } from "../entities/Comment";
 import { Follow } from "../entities/Follow";
 import { Like } from "../entities/Like";
+import { Device } from "../entities/Device";
 
 export const AppDataSource = new DataSource({
     type: "mysql",
@@ -15,7 +16,7 @@ export const AppDataSource = new DataSource({
     database: "SocialSphere1",
     synchronize: false, 
     logging: false,
-    entities: [User,Post,Comment,Follow,Like],
+    entities: [User,Post,Comment,Follow,Like,Device],
      migrations: ["src/migrations/*.ts"],
     subscribers: [],
 });

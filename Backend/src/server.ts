@@ -11,6 +11,7 @@ import followRoutes from './routes/followRoutes'
 import dotenv from 'dotenv';
 import path from 'path';
 import cors from 'cors'
+import cookieParser from "cookie-parser";
 import {AppDataSource} from "./config/data-source";
 
 
@@ -19,6 +20,8 @@ dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+app.use(cookieParser());
 
 app.use(express.json());
 app.use(cors({
