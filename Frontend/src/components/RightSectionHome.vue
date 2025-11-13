@@ -74,15 +74,17 @@ const fetchSuggestedUsers = async () => {
   }
 };
 
-// Follow/Unfollow logic
+
 const toggleFollow = async (user) => {
   try {
     if (!user.isFollowing) {
       await api.post("/follow/follow", null, {
         params: { followerId: currentUserId, followingId: user.id },
       });
+      
       user.isFollowing = true;
       followingIds.value.push(user.id);
+      
     } else {
       await api.post("/follow/unfollow", null, {
         params: { followerId: currentUserId, followingId: user.id },
@@ -91,7 +93,7 @@ const toggleFollow = async (user) => {
       followingIds.value = followingIds.value.filter((id) => id !== user.id);
     }
 
-    // Optional: Update global user data if needed
+
     await userStore.fetchUser();
   } catch (error) {
     console.error("Follow/unfollow failed:", error);

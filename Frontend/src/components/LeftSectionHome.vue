@@ -49,18 +49,16 @@
     </v-btn>
   </div>
 
-  <v-list dense>
+  <v-list dense class="community-list">
     <v-list-item
       v-for="community in communities"
       :key="community.id"
       class="hover:bg-[#2a2a2a] rounded-lg"
     >
-
       <v-list-item-title>{{ community.name }}</v-list-item-title>
     </v-list-item>
   </v-list>
 </v-card>
-
 
   </div>
 </template>
@@ -79,6 +77,9 @@ const communities = ref([
   { id: 1, name: "Vue Devs", icon: "https://cdn-icons-png.flaticon.com/512/5968/5968672.png" },
   { id: 2, name: "AI Talks", icon: "https://cdn-icons-png.flaticon.com/512/4712/4712109.png" },
   { id: 3, name: "Tech Memes", icon: "https://cdn-icons-png.flaticon.com/512/5968/5968282.png" },
+    { id: 1, name: "Vue Devs", icon: "https://cdn-icons-png.flaticon.com/512/5968/5968672.png" },
+  { id: 2, name: "AI Talks", icon: "https://cdn-icons-png.flaticon.com/512/4712/4712109.png" },
+   { id: 3, name: "Tech Memes", icon: "https://cdn-icons-png.flaticon.com/512/5968/5968282.png" },
     { id: 1, name: "Vue Devs", icon: "https://cdn-icons-png.flaticon.com/512/5968/5968672.png" },
   { id: 2, name: "AI Talks", icon: "https://cdn-icons-png.flaticon.com/512/4712/4712109.png" },
 
@@ -107,4 +108,5 @@ const communities = ref([
   text-align: center;
   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.5);
 }
+
 </style>

@@ -32,14 +32,21 @@
           <p class="text-white">Enter your 6-digit code from your Authenticator app</p>
           <v-text-field v-model="twofaCode" label="Enter code from app" maxlength="6"></v-text-field>
 
-          <div class="d-flex" style="gap: 10px; margin-top: 10px;">
-            <v-btn color="secondary" @click="backToLogin">
-              Back
-            </v-btn>
-            <v-btn color="primary" @click="verifyTwoFA">
-              Verify
-            </v-btn>
-          </div>
+         <v-checkbox
+  v-model="trustDevice"
+  label="Trust this device to skip 2FA next time"
+  class="mt-2 mb-2"
+></v-checkbox>
+
+<div class="d-flex" style="gap: 10px; margin-top: 10px;">
+  <v-btn color="secondary" @click="backToLogin">
+    Back
+  </v-btn>
+  <v-btn color="primary" @click="verifyTwoFA">
+    Verify
+  </v-btn>
+</div>
+
         </div>
 
         <div class="d-flex align-center flex-column" style="gap: 10px;" v-if="!twofaRequired">
@@ -133,31 +140,12 @@ async function verifyTwoFA() {
     const res = await api.post('/auth/twofacverify', {
       userId: tempUserId.value,
       code: twofaCode.value,
-      login: true
+      login: true,
+      trust: trustDevice.value // send trust directly
     });
 
     if (res.data.success) {
       twofaRequired.value = false;
-
-      const result = await Swal.fire({
-        title: 'Trust This Device?',
-        text: 'You can trust this device to skip 2FA next time.',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonText: 'Yes, trust this device',
-        cancelButtonText: 'No',
-      });
-
-      if (result.isConfirmed) {
-        await api.post('/auth/twofacverify', {
-          userId: tempUserId.value,
-          code: twofaCode.value,
-          login: true,
-          trust: true
-        });
-      }
-
-
       store.accessToken = res.data.accesstoken;
       store.refreshToken = res.data.refreshtoken;
       await store.fetchUser();

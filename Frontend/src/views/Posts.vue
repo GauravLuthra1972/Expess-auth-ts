@@ -2,12 +2,19 @@
     <v-container class=" d-flex ma-0 pa-0 main-container"
         style="overflow: hidden; justify-content: space-between;  background-color: #121212;" fluid>
 
+          <v-progress-linear 
+    v-if="loading" 
+    indeterminate 
+    color="pink" 
+    height="4" 
+    class="loader-top"
+  ></v-progress-linear>
+
         <LeftSectionHome class="mt-4"></LeftSectionHome>
 
 
         <div class="center-content mt-4">
-            <v-progress-linear v-if="loading" indeterminate color="pink" height="4" class="mb-2"></v-progress-linear>
-
+            
 
 
             <v-form @submit.prevent="createPost" enctype="multipart/form-data" class="post-form ">
@@ -625,4 +632,13 @@ onMounted(fetchPosts)
 body::-webkit-scrollbar {
     display: none;
 }
+
+.loader-top {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 9999;
+}
+
 </style>

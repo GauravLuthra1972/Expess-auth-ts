@@ -64,6 +64,7 @@ onMounted(() => {
 })
 
 const searchUsers = async () => {
+  
   if (!searchQuery.value) {
     suggestedUsers.value = []
     menu.value = false
