@@ -33,17 +33,63 @@
         </div>
       </div>
 
-      <v-btn block color="pink" class="mt-4" dark>My Profile</v-btn>
+      <v-btn block color="pink" class="mt-4" dark @click="router.push('myposts')">My Profile</v-btn>
     </v-card>
+
+
+
+
+
+
+<v-card class="profile-card my-15 pa-4">
+  <div class="d-flex justify-space-between align-center mb-3">
+    <h4>My Communities</h4>
+    <v-btn icon size="small" color="pink" @click="createDialog = true">
+      <v-icon>mdi-plus</v-icon>
+    </v-btn>
+  </div>
+
+  <v-list dense>
+    <v-list-item
+      v-for="community in communities"
+      :key="community.id"
+      class="hover:bg-[#2a2a2a] rounded-lg"
+    >
+
+      <v-list-item-title>{{ community.name }}</v-list-item-title>
+    </v-list-item>
+  </v-list>
+</v-card>
+
+
   </div>
 </template>
 
 <script setup>
-import { computed } from "vue";
+import { computed ,ref} from "vue";
 import { useUserStore } from '../stores/userStore'
+import router from "../routes/router";
 
 const userStore = useUserStore();
 const user = computed(() => userStore.user);
+
+
+const createDialog = ref(false);
+const communities = ref([
+  { id: 1, name: "Vue Devs", icon: "https://cdn-icons-png.flaticon.com/512/5968/5968672.png" },
+  { id: 2, name: "AI Talks", icon: "https://cdn-icons-png.flaticon.com/512/4712/4712109.png" },
+  { id: 3, name: "Tech Memes", icon: "https://cdn-icons-png.flaticon.com/512/5968/5968282.png" },
+    { id: 1, name: "Vue Devs", icon: "https://cdn-icons-png.flaticon.com/512/5968/5968672.png" },
+  { id: 2, name: "AI Talks", icon: "https://cdn-icons-png.flaticon.com/512/4712/4712109.png" },
+
+]);
+
+
+
+
+
+
+
 </script>
 
 <style scoped>

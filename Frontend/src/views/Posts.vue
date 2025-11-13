@@ -411,6 +411,7 @@ const fetchPosts = async () => {
         posts.value = res.data.data.reverse()
         console.log(posts.value)
         console.log(user.value)
+        await userStore.fetchUser()
 
     } catch (err) {
         console.error(err)

@@ -2,17 +2,20 @@
   <v-app-bar :elevation="2">
     <v-app-title class="px-15 text-h5">SocialSphere</v-app-title>
 
-      <div style="flex: 1; max-width: 20rem; ">
-    <UserSearch ></UserSearch>
+    <div style="flex: 1; max-width: 25rem; ">
+      <UserSearch></UserSearch>
     </div>
     <v-spacer></v-spacer>
 
-    
+
 
     <v-list class="d-flex ga-4 px-15" style="background-color: #121212; color: white;">
-      <v-list-item to="/myposts">My Posts</v-list-item>
-      <v-list-item to="/posts">Posts</v-list-item>
+      <!-- <v-list-item to="/myposts">My Posts</v-list-item> -->
+      <v-list-item to="/posts">Home</v-list-item>
       <v-list-item to="/users" v-if="user?.role === 'admin'">Users</v-list-item>
+      <v-list-item to="/communities">Communities</v-list-item>
+      <v-list-item to="/chats">Chats</v-list-item>
+
 
       <v-menu>
         <template #activator="{ props }">
@@ -45,17 +48,11 @@
           </v-list-item>
 
 
-        <div class="d-flex align-center justify center mt-3 mb-2 ml-5 ga-3">
-  <span class="text-subtitle-1">2 FA</span>
-  <v-switch
-    v-model="user.isTwofaEnabled"
-    @change="toggleTwoFA"
-    inset
-    hide-details
-    density="compact"
-    class="ma-0 pa-0"
-  />
-</div>
+          <div class="d-flex align-center justify center mt-3 mb-2 ml-5 ga-3">
+            <span class="text-subtitle-1">2 FA</span>
+            <v-switch v-model="user.isTwofaEnabled" @change="toggleTwoFA" inset hide-details density="compact"
+              class="ma-0 pa-0" />
+          </div>
 
 
 
@@ -154,7 +151,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted ,watch} from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useUserStore } from '../stores/userStore'
 import api from '../plugins/api'
 import UserSearch from './UserSearch.vue'

@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken'
 
 import { AppDataSource } from "../config/data-source";
 import { User } from "../entities/User";
+import { Follow } from "../entities/Follow";
 const saltRounds = 10
 
 class UserController {
@@ -443,14 +444,34 @@ class UserController {
         }
     }
 
+async getSuggestedUsers(req: Request, res: Response) {
+    const userRepo = AppDataSource.getRepository(User);
+    const followRepo = AppDataSource.getRepository(Follow);
 
+    const { userId } = req.query;
+    if (!userId) return res.status(400).json({ message: "Missing userId" });
 
-    async adminadduser(req: Request, res: Response) {
+    const user = await userRepo.findOne({ where: { id: Number(userId) } });
+    if (!user) return res.status(404).json({ message: "User not found" });
 
+    // Get the list of user IDs that the logged-in user is already following
+    const following = await followRepo.find({
+        where: { follower: { id: user.id } },
+        relations: ["following"]
+    });
 
+    const followingIds = following.map(f => f.following.id);
 
+    // Include the logged-in user ID in the exclusion list
+    followingIds.push(user.id);
 
-    }
+    // Get suggested users: not already followed and not the user itself
+    const suggestedUsers = await userRepo.createQueryBuilder("user")
+        .where("user.id NOT IN (:...ids)", { ids: followingIds })
+        .getMany();
+
+    res.json(suggestedUsers);
+}
 
 
 

@@ -1,4 +1,3 @@
-// entities/Device.ts
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from "typeorm";
 import { User } from "./User";
 

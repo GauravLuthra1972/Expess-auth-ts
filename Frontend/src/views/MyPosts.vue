@@ -1,139 +1,93 @@
 <template>
-  <v-container class="posts-page" fluid>
-    <h1 class="page-title">My Posts</h1>
-
-    <div v-if="posts.length === 0" class="text-center mt-4">
-      No posts yet.
-    </div>
-
-   <v-row class="posts-feed" dense>
-  <v-col
-    v-for="post in posts"
-    :key="post.id"
-    cols="12"
-    sm="6"
-    md="3"
-  >
-    <v-card class="post-card dark-card">
-      <!-- <v-card-title class="post-header d-flex align-center">
-        <v-avatar size="40" class="mr-3">
-          <v-img :src="post.user?.profile_pic || 'https://cdn-icons-png.flaticon.com/512/149/149071.png'"></v-img>
-        </v-avatar>
-        <div>
-          <div class="username">{{ post.user?.username || 'User' }}</div>
-          <div class="text-caption grey--text">{{ new Date(post.created_at).toLocaleString() }}</div>
-        </div>
-      </v-card-title> -->
-
-      <v-card-text>
-        <h3 class="post-title mb-3">{{ post.title }}</h3>
+  <v-container fluid class="d-flex justify-center pa-0 ma-0 " style="background-color:#121212; height: 100%; ">
+    <v-card color="#1E1E1E" elevation="8" rounded="xl" class="overflow-hidden profile-card" width="850" >
+     
+      <div class="cover-wrapper">
         <v-img
-          :src="post.attachment || 'https://img.freepik.com/free-photo/vertical-shot-river-surrounded-by-mountains-meadows-scotland_181624-27881.jpg?semt=ais_hybrid&w=740&q=80'"
-          class="mt-2 mb-3"
-          height="400"
+          src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=1600&q=80"
+          height="160"
           cover
+          class="cover-img"
         ></v-img>
-        <p class="post-content">{{ post.content }}</p>
-    
-      </v-card-text>
+      </div>
 
-      <v-card-actions>
-        <v-chip class="ma-1" color="pink darken-1" text-color="white">{{ post.likes_count }} Likes</v-chip>
-        <v-chip class="ma-1" color="pink darken-1" text-color="white">{{ post.comments_count }} Comments</v-chip>
-      </v-card-actions>
+  
+      <div class="avatar-wrapper">
+        <v-avatar size="130" class="elevation-6">
+          <v-img src="https://cdn-icons-png.flaticon.com/512/149/149071.png"></v-img>
+        </v-avatar>
+      </div>
+
+
+      <div class="text-center mt-14">
+        <h2 class="text-h6 font-weight-bold white--text mb-1">Gaurav928</h2>
+
+        <div class="d-flex justify-center grey--text text--lighten-1 mb-4">
+          <span class="mx-3">2 posts</span>
+          <span class="mx-3">10 followers</span>
+          <span class="mx-3">5 following</span>
+        </div>
+
+        <!-- Follow Button -->
+        <v-btn
+          :color="isFollowing ? '#333' : '#ff007f'"
+          class="white--text font-weight-bold px-8"
+          rounded
+          elevation="2"
+          @click="toggleFollow"
+        >
+          {{ isFollowing ? 'Following' : 'Follow' }}
+        </v-btn>
+      </div>
+
+      <v-divider class="my-6" color="grey darken-3"></v-divider>
+
+      <!-- TABS -->
+      <v-tabs v-model="tab" align-tabs="center" color="#ff007f" slider-color="#ff007f">
+        <v-tab>Posts</v-tab>
+        <v-tab>Saved</v-tab>
+      </v-tabs>
+
+      <v-window v-model="tab">
+        <v-window-item value="0">
+          <v-card-text class="text-center grey--text text--lighten-1">No posts yet</v-card-text>
+        </v-window-item>
+        <v-window-item value="1">
+          <v-card-text class="text-center grey--text text--lighten-1">No saved posts</v-card-text>
+        </v-window-item>
+      </v-window>
     </v-card>
-  </v-col>
-</v-row>
-
   </v-container>
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'
-import api from '../plugins/api'
-import { useUserStore } from '../stores/userStore'
-
-const userStore = useUserStore()
-const user = computed(() => userStore.user)
-
-const posts = ref([])
-
-const fetchPosts = async () => {
-  try {
-    const res = await api.get('posts')
-    console.log(res.data.data)
- 
-    posts.value = res.data.data.filter(p => p.user.id == user.value.id)
-    console.log(posts.value)
-  } catch (err) {
-    console.error(err)
-  }
-}
-
-onMounted(fetchPosts)
+import { ref } from "vue";
+const tab = ref(0);
+const isFollowing = ref(false);
+const toggleFollow = () => (isFollowing.value = !isFollowing.value);
 </script>
 
 <style scoped>
-.posts-page {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background-color: #121212;
-  min-height: 100vh;
-  color: #e0e0e0;
-  font-family: "Poppins", sans-serif;
-  padding: 2rem;
+.profile-card {
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  transition: all 0.3s ease;
 }
-
-.page-title {
-  font-size: 2rem;
-  margin-bottom: 1.5rem;
-  text-align: center;
-  color: #ff4081;
+.profile-card:hover {
+  border-color: #ff007f;
 }
-
-.posts-feed {
+.cover-wrapper {
+  position: relative;
   width: 100%;
-  margin: 0 auto;
-
 }
-
-
-.post-card {
+.cover-img {
+  object-fit: cover;
   width: 100%;
-  border-radius: 10px;
-  
-  overflow: hidden;
 }
-
-.dark-card {
-  background-color: #1e1e1e;
-  color: #e0e0e0;
-  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.6);
-}
-
-.post-header {
-  border-bottom: 1px solid #333;
-}
-
-.username {
-  font-weight: bold;
-  color: #ff4081;
-}
-
-.post-title {
-  margin: 0 0 5px 0;
-  font-size: 18px;
-  color: #ffffff;
-}
-
-.post-content {
-  color: #cccccc;
-}
-
-.tags {
-  margin-top: 8px;
-  font-size: 13px;
-  color: #ff80ab;
+.avatar-wrapper {
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 </style>

@@ -1,21 +1,18 @@
 <template>
-  <v-app style="overflow: hidden; background-color: #121212;">
-    
-    <!-- Header stays fixed on top -->
+  <v-app>
     <Header
-      v-if="accessToken"
+      v-if="$route.path !== '/myposts' && $route.name !== 'register'" 
       app
       fixed
       style="background-color: #121212; color: white;"
     />
 
-    <!-- Main content area below header -->
     <v-main class="bg-black">
       <router-view></router-view>
     </v-main>
-
   </v-app>
 </template>
+
 
 <script>
 import { useUserStore } from './stores/userStore'

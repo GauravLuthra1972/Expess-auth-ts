@@ -236,6 +236,7 @@ class authController {
 
                     const rawToken = crypto.randomBytes(64).toString("hex");
                     const tokenHash = crypto.createHash("sha256").update(rawToken).digest("hex");
+                    console.log("reqipppppppp",req.ip)
                     const fingerprint = `${req.ip}-${req.headers["user-agent"]}`;
                     const deviceFingerprint = crypto.createHash("sha256").update(fingerprint).digest("hex");
                     const expiresAt = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
